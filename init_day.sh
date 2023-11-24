@@ -34,7 +34,10 @@ EOF
 use parse_display::FromStr;
 #[allow(unused_imports)]
 use itertools::Itertools;
+#[allow(unused_imports)]
 use utils::*;
+#[allow(unused_imports)]
+use utils::ParseInput;
 use aoc_derive::aoc_main;
 
 #[aoc_main]

@@ -7,7 +7,7 @@ mod box2d;
 pub use box2d::Box2D;
 
 mod input;
-pub use input::Input;
+pub use input::*;
 
 pub mod graphs;
 

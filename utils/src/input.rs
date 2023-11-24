@@ -68,6 +68,25 @@ impl Input {
     }
 }
 
+pub trait ParseInput<T> {
+    fn parse_lines(input: &Input) -> impl Iterator<Item = T>;
+    fn split_and_parse(input: &Input, sep: &'static str) -> impl Iterator<Item = T>;
+}
+
+impl<T> ParseInput<T> for T
+where
+    T: FromStr,
+    <T as std::str::FromStr>::Err: std::fmt::Debug,
+{
+    fn parse_lines(input: &Input) -> impl Iterator<Item = T> {
+        input.parse_lines()
+    }
+
+    fn split_and_parse(input: &Input, sep: &'static str) -> impl Iterator<Item = T> {
+        input.split_and_parse(sep)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
