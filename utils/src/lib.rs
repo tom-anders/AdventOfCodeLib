@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use regex::Regex;
 
 mod vec2d;
@@ -41,13 +43,21 @@ macro_rules! solution {
 }
 
 pub trait Numbers {
-    fn numbers_i8(&self) -> Vec<i8>;
+    fn numbers<T>(&self) -> Vec<T>
+    where
+        T: num::Integer + FromStr,
+        <T as std::str::FromStr>::Err: std::fmt::Debug;
 }
 
 impl Numbers for &str {
-    fn numbers_i8(&self) -> Vec<i8> {
+    fn numbers<T>(&self) -> Vec<T>
+    where
+        T: num::Integer + FromStr,
+        <T as std::str::FromStr>::Err: std::fmt::Debug,
+    {
         let reg = Regex::new(r"-?\d+").unwrap();
-        reg.find_iter(self).map(|m| m.as_str().parse().unwrap()).collect()
+        reg.find_iter(self)
+            .map(|m| m.as_str().parse::<T>().unwrap())
+            .collect()
     }
 }
-
