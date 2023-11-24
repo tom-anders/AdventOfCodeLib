@@ -20,7 +20,8 @@ impl<T> Grid<T> {
         Grid { data }
     }
 
-    pub fn get(&self, pos: Vec2D) -> &T {
+    pub fn get(&self, pos: impl Into<Vec2D>) -> &T {
+        let pos = pos.into();
         &self.data[pos.y as usize][pos.x as usize]
     }
 
