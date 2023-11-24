@@ -3,6 +3,9 @@ use regex::Regex;
 mod vec2d;
 pub use vec2d::Vec2D;
 
+mod box2d;
+pub use box2d::Box2D;
+
 mod input;
 pub use input::Input;
 

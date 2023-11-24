@@ -25,6 +25,10 @@ impl Vec2D {
         Self { x: 0, y }
     }
 
+    pub fn abs(&self) -> Self {
+        Self::new(self.x.abs(), self.y.abs())
+    }
+
     pub fn flipped(&self) -> Self {
         Self::new(self.y, self.x)
     }
