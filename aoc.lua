@@ -73,6 +73,10 @@ M.init = function(day, impl, example, input)
 
     vim.keymap.set('n', '<leader>o', function() save_and_solve({input = input, release = true}) end)
     vim.keymap.set('n', '<leader>O', function() save_and_solve({input = example, release = true}) end)
+
+    vim.keymap.set('n', '<leader>ca', function() 
+        vim.cmd(string.format(":!cargo add %s --package day%d", vim.fn.input("package(s) to add: "), day))
+    end)
 end
 
 return M
