@@ -30,23 +30,23 @@ regex.workspace = true
 EOF
 
     cat << EOF > $impl
-#[allow(unused_imports)]
-use parse_display::FromStr;
+use aoc_derive::aoc_main;
 #[allow(unused_imports)]
 use itertools::Itertools;
 #[allow(unused_imports)]
-use utils::*;
+use parse_display::FromStr;
 #[allow(unused_imports)]
 use utils::ParseInput;
-use aoc_derive::aoc_main;
+#[allow(unused_imports)]
+use utils::*;
 
 #[aoc_main]
 fn solve(input: Input) -> Solution {
-    solution!()
+    let part1 = 
+    let part2 = "";
+    solution!(part1, part2)
 }
 EOF
-
-    rustfmt $impl
 
     git add $day_package
 
