@@ -1,9 +1,8 @@
 use std::cmp::Reverse;
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::fmt::Debug;
 use std::hash::Hash;
 
-use itertools::Itertools;
 use priority_queue::PriorityQueue;
 
 pub type Cost = usize;
@@ -26,34 +25,29 @@ pub fn bfs<T: Node>(
 ) -> Option<usize> {
     let (start, end) = (start.into(), end.into());
 
-    if start == end {
-        return Some(0);
-    }
-
     let mut visited: HashSet<T> = HashSet::new();
-    let mut next_nodes = vec![start];
-    let mut steps = 1;
+    let mut queue = VecDeque::new();
+    queue.push_front((start, 0));
 
     loop {
-        let unvisited_neighbors = next_nodes
-            .iter()
-            .flat_map(|n| graph.neighbors(n))
-            .filter(|n| !visited.contains(n))
-            .collect_vec();
+        match queue.pop_front() {
+            None => return None,
+            Some((node, distance)) => {
+                if node == end {
+                    return Some(distance);
+                }
 
-        if unvisited_neighbors.is_empty() {
-            return None;
-        }
+                visited.insert(node.clone());
 
-        for neighbor in &unvisited_neighbors {
-            if *neighbor == end {
-                return Some(steps);
+                queue.extend(graph.neighbors(&node).filter_map(|n| {
+                    if visited.contains(&n) {
+                        None
+                    } else {
+                        Some((n, distance + 1))
+                    }
+                }));
             }
-            visited.insert(neighbor.clone());
         }
-
-        steps += 1;
-        next_nodes = unvisited_neighbors;
     }
 }
 
