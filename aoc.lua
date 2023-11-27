@@ -7,10 +7,6 @@ M.init = function(day, impl, example, input)
     vim.cmd.split(input)
     vim.cmd 'wincmd h'
 
-    vim.keymap.set('n', '<leader>a', string.format(':wa | Cargo run --package day%d -- "%s"<CR>', day, input))
-    vim.keymap.set('n', '<leader>A', string.format(':wa | Cargo run --package day%d -- "%s"<CR>', day, example))
-    vim.keymap.set('n', '<leader>o', string.format(':wa | Cargo run --release --package day%d -- "%s"<CR>', day, input))
-
     vim.cmd(string.format('DebugExe target/debug/day%d', day))
 
     function build_and_debug(input) 
@@ -25,6 +21,58 @@ M.init = function(day, impl, example, input)
 
     vim.keymap.set('n', '<leader>da', function() build_and_debug(input) end)
     vim.keymap.set('n', '<leader>dA', function() build_and_debug(example) end)
+
+    local overseer = require'overseer'
+    overseer.register_template {
+        name = "solve",
+        builder = function(params) 
+            local args = {
+                "run",
+                '--package', 'day' .. day,
+                "--", params.input
+            }
+            if params.release then
+                table.insert(args, 2, "--release")
+            end
+
+            return {
+                cmd = {'cargo'},
+                args = args,
+                strategy = {
+                    'toggleterm',
+                    use_shell = true, -- Needed for xclip to work correctly
+                    on_create = function()
+                        vim.keymap.set('n', 'q', ':q<CR>', {buffer = true, silent = true})
+                        vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', {buffer = true})
+                    end
+                }
+            }
+        end,
+        params = {
+            input = {
+                type = "string",
+            },
+            release = {
+                type = "boolean",
+                default = false,
+                optional = true,
+            }
+        },
+    }
+
+    function save_and_solve(params) 
+        vim.cmd'wa'
+        overseer.run_template({name = "solve", params = params})
+    end
+
+    vim.keymap.set('n', '<leader>a', function() save_and_solve({input = input}) end)
+    vim.keymap.set('n', '<leader>A', function() save_and_solve({input = example}) end)
+
+    vim.keymap.del('n', '<leader>or')
+    vim.keymap.del('n', '<leader>ot')
+
+    vim.keymap.set('n', '<leader>o', function() save_and_solve({input = input, release = true}) end)
+    vim.keymap.set('n', '<leader>O', function() save_and_solve({input = example, release = true}) end)
 end
 
 return M
