@@ -94,6 +94,45 @@ pub fn dijkstra<T: Node>(
     }
 }
 
+pub enum NextState<I> {
+    Terminal(usize),
+    Next(I),
+}
+
+pub trait DfsGraph {
+    type State: Clone + Debug + Eq + Hash;
+    /// Return None for terminal state
+    fn next_states<'a, 'b: 'a>(
+        &'a self,
+        current: &'b Self::State,
+        current_best: usize,
+        depth: usize,
+    ) -> NextState<impl IntoIterator<Item = Self::State> + 'a>;
+}
+
+pub fn dfs<T>(graph: &impl DfsGraph<State = T>, start: impl Into<T>) -> Option<Cost> {
+    let mut current_best = 0;
+    dfs_impl(graph, &start.into(), &mut current_best, 0)
+}
+
+fn dfs_impl<T>(
+    graph: &impl DfsGraph<State = T>,
+    current: &T,
+    current_best: &mut Cost,
+    depth: usize,
+) -> Option<usize> {
+    return match graph.next_states(current, *current_best, depth) {
+        NextState::Terminal(score) => {
+            *current_best = score.max(*current_best);
+            Some(*current_best)
+        }
+        NextState::Next(next_states) => next_states
+            .into_iter()
+            .flat_map(|next_state| dfs_impl(graph, &next_state, current_best, depth + 1))
+            .max(),
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -192,5 +231,44 @@ mod tests {
         assert_eq!(bfs(&grid, (0, 0), (5, 3)), Some(10));
         assert_eq!(bfs(&grid, (0, 0), (1, 1)), None);
         assert_eq!(bfs(&grid, (0, 0), (0, 0)), Some(0));
+    }
+
+    #[test]
+    fn test_dfs() {
+        #[derive(Debug, Clone, Eq, PartialEq, Hash)]
+        enum State {
+            A,
+            B,
+            C,
+            D,
+            E,
+            F,
+            G,
+        }
+
+        struct StateGraph;
+        impl DfsGraph for StateGraph {
+            type State = State;
+
+            fn next_states<'a, 'b: 'a>(
+                &'a self,
+                current: &'b Self::State,
+                _current_best: usize,
+                _depth: usize,
+            ) -> NextState<impl IntoIterator<Item = Self::State> + 'a> {
+                use NextState::*;
+                match current {
+                    State::A => Next([State::B, State::C]),
+                    State::B => Terminal(10),
+                    State::C => Next([State::D, State::E]),
+                    State::D => Next([State::F, State::G]),
+                    State::E => Terminal(11),
+                    State::F => Terminal(12),
+                    State::G => Terminal(13),
+                }
+            }
+        }
+
+        assert_eq!(dfs(&StateGraph {}, State::A), Some(13)); // A -> C -> H -> 13
     }
 }
