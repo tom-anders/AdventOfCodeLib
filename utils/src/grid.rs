@@ -107,6 +107,10 @@ impl<T> Grid<T>
 where
     T: Clone,
 {
+    pub fn with_value(val: T, num_rows: usize, num_cols: usize) -> Self {
+        Grid { data: vec![vec![val; num_cols]; num_rows] }
+    }
+
     fn rotate_col(&mut self, col: usize, mid: usize, up: bool) {
         let mut new_col = self.col(col).map(|(_, item)| item).cloned().collect_vec();
         if up {
