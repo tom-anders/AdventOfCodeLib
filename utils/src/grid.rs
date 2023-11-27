@@ -197,10 +197,6 @@ where
         WeightedGrid::neighbors(self, node)
             .map(move |neighbor| (neighbor, self.cost(*node, neighbor)))
     }
-
-    fn nodes(&self) -> impl Iterator<Item = Self::Node> {
-        self.coordinates()
-    }
 }
 
 impl<T> graphs::UnweightedGraph for Grid<T>

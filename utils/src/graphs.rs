@@ -27,7 +27,7 @@ pub fn bfs<T: Node>(
     let (start, end) = (start.into(), end.into());
 
     if start == end {
-        return Some(0)
+        return Some(0);
     }
 
     let mut visited: HashSet<T> = HashSet::new();
@@ -63,8 +63,6 @@ pub trait WeightedGraph {
         &'a self,
         node: &'b Self::Node,
     ) -> impl Iterator<Item = (Self::Node, Cost)> + 'a;
-
-    fn nodes(&self) -> impl Iterator<Item = Self::Node>;
 }
 
 pub fn dijkstra<T: Node>(
@@ -73,28 +71,29 @@ pub fn dijkstra<T: Node>(
     end: impl Into<T>,
 ) -> Option<usize> {
     let (start, end) = (start.into(), end.into());
-    let mut unvisited: PriorityQueue<_, Reverse<_>> = graph
-        .nodes()
-        .map(|node| {
-            (
-                node.clone(),
-                Reverse(if node == start { 0 } else { usize::MAX }),
-            )
-        })
-        .collect();
+
+    let mut visited = HashSet::new();
+    let mut queue = PriorityQueue::new();
+    queue.push(start, std::cmp::Reverse(0));
 
     loop {
-        let (current_node, Reverse(current_cost)) = unvisited.pop()?;
+        match queue.pop() {
+            None => return None,
+            Some((node, Reverse(current_cost))) => {
+                if node == end {
+                    return Some(current_cost);
+                }
+                visited.insert(node.clone());
 
-        if current_node == end {
-            return Some(current_cost);
-        }
-
-        for (neighbor, cost) in graph.neighbors(&current_node) {
-            if let Some(Reverse(distance)) = unvisited.get_priority(&neighbor) {
-                let new_cost = current_cost + cost;
-                if new_cost < *distance {
-                    unvisited.change_priority(&neighbor, Reverse(new_cost));
+                for (neighbor, cost) in graph.neighbors(&node) {
+                    if !visited.contains(&neighbor) && queue.get(&neighbor).is_none() {
+                        queue.push(neighbor, Reverse(cost + current_cost));
+                    } else if let Some(Reverse(previous_cost)) = queue.get_priority(&neighbor) {
+                        let new_cost = current_cost + cost;
+                        if new_cost < *previous_cost {
+                            queue.change_priority(&neighbor, Reverse(new_cost));
+                        }
+                    }
                 }
             }
         }
@@ -119,10 +118,6 @@ mod tests {
 
     impl WeightedGraph for SimpleWeightedGraph {
         type Node = &'static str;
-
-        fn nodes(&self) -> impl Iterator<Item = Self::Node> {
-            self.edges.keys().copied()
-        }
 
         fn neighbors<'a, 'b: 'a>(
             &'a self,
@@ -156,7 +151,10 @@ mod tests {
                 self.get(to).abs_diff(*self.get(from))
             }
 
-            fn neighbors<'a, 'b: 'a>(&'a self, node: &'b Vec2D) -> impl Iterator<Item = Vec2D> + 'a {
+            fn neighbors<'a, 'b: 'a>(
+                &'a self,
+                node: &'b Vec2D,
+            ) -> impl Iterator<Item = Vec2D> + 'a {
                 self.orthogonal_neighbors(node)
             }
         }
@@ -169,7 +167,10 @@ mod tests {
         ]
         .into();
 
-        assert_eq!(dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(5, 3)), Some(11));
+        assert_eq!(
+            dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(5, 3)),
+            Some(11)
+        );
         assert_eq!(dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(-1, -1)), None);
         assert_eq!(dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(0, 0)), Some(0));
     }
@@ -177,7 +178,10 @@ mod tests {
     #[test]
     fn grid_bfs() {
         impl grid::UnweightedGrid for Grid<char> {
-            fn neighbors<'a, 'b: 'a>(&'a self, node: &'b Vec2D) -> impl Iterator<Item = Vec2D> + 'a {
+            fn neighbors<'a, 'b: 'a>(
+                &'a self,
+                node: &'b Vec2D,
+            ) -> impl Iterator<Item = Vec2D> + 'a {
                 self.all_neighbors(node)
                     .filter(move |pos| self.get(*pos) != &'#')
             }
