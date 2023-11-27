@@ -155,7 +155,7 @@ mod tests {
         };
         assert_eq!(
             vec![Vec2D::new(1, 2), Vec2D::new(3, 4)],
-            input.parse_lines().collect_vec()
+            Vec2D::parse_lines(&input).collect_vec()
         );
     }
 
