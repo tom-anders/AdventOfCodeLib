@@ -7,10 +7,10 @@ pub struct Grid<T> {
     data: Vec<Vec<T>>,
 }
 
-impl<T, Iter: IntoIterator<Item = Vec<T>>> From<Iter> for Grid<T> {
+impl<T, InnerIter: IntoIterator<Item = T>, Iter: IntoIterator<Item = InnerIter>> From<Iter> for Grid<T> {
     fn from(iter: Iter) -> Self {
         let grid = Grid {
-            data: iter.into_iter().collect(),
+            data: iter.into_iter().map(|iter| iter.into_iter().collect_vec()).collect_vec()
         };
         assert!(grid.data.iter().all(|row| row.len() == grid.data[0].len()));
         grid
