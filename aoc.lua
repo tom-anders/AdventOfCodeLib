@@ -59,6 +59,9 @@ M.init = function(day, impl, example, input)
             }
         },
     }
+    overseer.add_template_hook({ name = "solve" }, function(task_defn, util)
+        util.remove_component(task_defn, "on_output_quickfix")
+    end)
 
     function save_and_solve(params) 
         vim.cmd'wa'
