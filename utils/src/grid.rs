@@ -7,10 +7,15 @@ pub struct Grid<T> {
     data: Vec<Vec<T>>,
 }
 
-impl<T, InnerIter: IntoIterator<Item = T>, Iter: IntoIterator<Item = InnerIter>> From<Iter> for Grid<T> {
+impl<T, InnerIter: IntoIterator<Item = T>, Iter: IntoIterator<Item = InnerIter>> From<Iter>
+    for Grid<T>
+{
     fn from(iter: Iter) -> Self {
         let grid = Grid {
-            data: iter.into_iter().map(|iter| iter.into_iter().collect_vec()).collect_vec()
+            data: iter
+                .into_iter()
+                .map(|iter| iter.into_iter().collect_vec())
+                .collect_vec(),
         };
         assert!(grid.data.iter().all(|row| row.len() == grid.data[0].len()));
         grid
@@ -36,12 +41,11 @@ impl<T> Grid<T> {
         self.data.len()
     }
 
-    pub fn row(&self, row: usize) -> RowIter<'_, T> {
-        RowIter {
-            grid: self,
-            row,
-            col: 0,
-        }
+    pub fn row(&self, row: usize) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
+        self.data[row]
+            .iter()
+            .enumerate()
+            .map(move |(col, item)| ((col, row).into(), item))
     }
 
     pub fn rotate_row_left(&mut self, row: usize, mid: usize) {
@@ -52,7 +56,7 @@ impl<T> Grid<T> {
         self.data[row].rotate_right(mid);
     }
 
-    pub fn rows(&self) -> impl Iterator<Item = RowIter<'_, T>> + '_ {
+    pub fn rows(&self) -> impl Iterator<Item = impl Iterator<Item = (Vec2D, &T)>> + '_ {
         (0..self.num_rows()).map(move |row| self.row(row))
     }
 
@@ -61,11 +65,7 @@ impl<T> Grid<T> {
     }
 
     pub fn col(&self, col: usize) -> ColIter<'_, T> {
-        ColIter {
-            grid: self,
-            row: 0,
-            col,
-        }
+        ColIter::new(self, col)
     }
 
     pub fn cols(&self) -> impl Iterator<Item = ColIter<'_, T>> + '_ {
@@ -108,7 +108,9 @@ where
     T: Clone,
 {
     pub fn with_value(val: T, num_rows: usize, num_cols: usize) -> Self {
-        Grid { data: vec![vec![val; num_cols]; num_rows] }
+        Grid {
+            data: vec![vec![val; num_cols]; num_rows],
+        }
     }
 
     fn rotate_col(&mut self, col: usize, mid: usize, up: bool) {
@@ -133,42 +135,51 @@ where
     }
 }
 
-pub struct RowIter<'a, T> {
-    grid: &'a Grid<T>,
-    row: usize,
-    col: usize,
-}
-
-impl<'a, T> Iterator for RowIter<'a, T> {
-    type Item = (Vec2D, &'a T);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.col >= self.grid.num_cols() {
-            return None;
-        }
-        let pos = (self.col, self.row).into();
-        let item = (pos, self.grid.get(pos));
-        self.col += 1;
-        Some(item)
-    }
-}
-
 pub struct ColIter<'a, T> {
     grid: &'a Grid<T>,
     row: usize,
+    row_back: usize,
     col: usize,
+}
+
+impl<'a, T> ColIter<'a, T> {
+    fn new(grid: &'a Grid<T>, col: usize) -> Self {
+        ColIter {
+            grid,
+            row: 0,
+            row_back: grid.num_rows(),
+            col,
+        }
+    }
 }
 
 impl<'a, T> Iterator for ColIter<'a, T> {
     type Item = (Vec2D, &'a T);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.row >= self.grid.num_rows() {
+        if self.row == self.row_back {
             return None;
         }
         let pos = (self.col, self.row).into();
         let item = (pos, self.grid.get(pos));
         self.row += 1;
+        Some(item)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.row_back - self.row;
+        (len, Some(len))
+    }
+}
+
+impl<'a, T> DoubleEndedIterator for ColIter<'a, T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.row_back == self.row {
+            return None;
+        }
+        self.row_back -= 1;
+        let pos = (self.col, self.row_back).into();
+        let item = (pos, self.grid.get(pos));
         Some(item)
     }
 }
@@ -233,6 +244,15 @@ mod tests {
         );
 
         assert_eq!(
+            grid.row(0).rev().collect_vec(),
+            vec![
+                (Vec2D::new(2, 0), &3),
+                (Vec2D::new(1, 0), &2),
+                (Vec2D::new(0, 0), &1)
+            ]
+        );
+
+        assert_eq!(
             grid.row(1).collect_vec(),
             vec![
                 (Vec2D::new(0, 1), &4),
@@ -261,6 +281,19 @@ mod tests {
             grid.col(0).collect_vec(),
             vec![(Vec2D::new(0, 0), &1), (Vec2D::new(0, 1), &4)]
         );
+
+        assert_eq!(
+            grid.col(0).rev().collect_vec(),
+            vec![(Vec2D::new(0, 1), &4), (Vec2D::new(0, 0), &1),]
+        );
+
+        let mut col0_iter = grid.col(0);
+        assert_eq!(col0_iter.size_hint(), (2, Some(2)));
+        assert_eq!(col0_iter.next(), Some((Vec2D::new(0, 0), &1)));
+        assert_eq!(col0_iter.size_hint(), (1, Some(1)));
+        assert_eq!(col0_iter.next_back(), Some((Vec2D::new(0, 1), &4)));
+        assert_eq!(col0_iter.next(), None);
+        assert_eq!(col0_iter.next_back(), None);
 
         assert_eq!(
             grid.col(1).collect_vec(),
