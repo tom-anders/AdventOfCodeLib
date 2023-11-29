@@ -16,30 +16,52 @@ pub mod graphs;
 pub mod grid;
 
 pub struct Solution {
-    pub part1: String,
-    pub part2: String,
+    pub part1: Option<String>,
+    pub part2: Option<String>,
 }
 
-impl Solution {
-    pub fn new<T1: std::fmt::Display, T2: std::fmt::Display>(p1: T1, p2: T2) -> Solution {
+trait PartSolution {
+    fn as_part_solution(&self) -> Option<String>;
+}
+
+
+// Rusts's orphan rules prevent a generic implementation because ToString is not implemented
+// for (), so do this manually here for all types that might be aoc solutions
+macro_rules! impl_part_solution {
+    ($($t:ty),*) => {
+        $(
+            impl PartSolution for $t {
+                fn as_part_solution(&self) -> Option<String> {
+                    Some(self.to_string())
+                }
+            }
+        )*
+    };
+}
+impl_part_solution!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize, String, &str);
+
+impl PartSolution for () {
+    fn as_part_solution(&self) -> Option<String> {
+        None
+    }
+}
+
+impl<T: PartSolution> From<T> for Solution {
+    fn from(part1: T) -> Self {
         Solution {
-            part1: p1.to_string(),
-            part2: p2.to_string(),
+            part1: part1.as_part_solution(),
+            part2: None,
         }
     }
 }
 
-#[macro_export]
-macro_rules! solution {
-    () => {
-        utils::solution!("")
-    };
-    ($part1: expr) => {
-        utils::solution!($part1, "")
-    };
-    ($part1: expr, $part2: expr) => {
-        Solution::new($part1, $part2)
-    };
+impl<T: PartSolution, U: PartSolution> From<(T, U)> for Solution {
+    fn from((part1, part2): (T, U)) -> Self {
+        Solution {
+            part1: part1.as_part_solution(),
+            part2: part2.as_part_solution(),
+        }
+    }
 }
 
 pub trait Numbers {

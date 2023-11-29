@@ -41,10 +41,8 @@ use utils::ParseInput;
 use utils::*;
 
 #[aoc_main]
-fn solve(input: Input) -> Solution {
-    let part1 = 
-    let part2 = "";
-    solution!(part1, part2)
+fn solve(input: Input) -> impl Into<Solution> {
+
 }
 EOF
 
