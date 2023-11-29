@@ -12,30 +12,34 @@ impl From<(Vec2D, Vec2D)> for Box2D {
     }
 }
 
-impl Box2D {
-    pub fn new(lower: Vec2D, upper: Vec2D) -> Self {
-        Self { lower, upper }
-    }
-
-    pub fn from_points(points: impl IntoIterator<Item = Vec2D>) -> Self {
-        let mut box2d = Self::new(
-            Vec2D::new(i64::MAX, i64::MAX),
-            Vec2D::new(i64::MIN, i64::MIN),
-        );
-        for point in points.into_iter() {
+impl FromIterator<Vec2D> for Box2D {
+    fn from_iter<I: IntoIterator<Item = Vec2D>>(iter: I) -> Self {
+        let mut box2d = Self::new((i64::MAX, i64::MAX), (i64::MIN, i64::MIN));
+        for point in iter {
             box2d.extend(point);
         }
         box2d
     }
+}
 
-    pub fn contains(&self, point: Vec2D) -> bool {
+impl Box2D {
+    pub fn new(lower: impl Into<Vec2D>, upper: impl Into<Vec2D>) -> Self {
+        Self {
+            lower: lower.into(),
+            upper: upper.into(),
+        }
+    }
+
+    pub fn contains(&self, point: impl Into<Vec2D>) -> bool {
+        let point = point.into();
         point.x >= self.lower.x
             && point.y >= self.lower.y
             && point.x <= self.upper.x
             && point.y <= self.upper.y
     }
 
-    pub fn extend(&mut self, point: Vec2D) {
+    pub fn extend(&mut self, point: impl Into<Vec2D>) {
+        let point = point.into();
         self.lower = Vec2D::new(self.lower.x.min(point.x), self.lower.y.min(point.y));
         self.upper = Vec2D::new(self.upper.x.max(point.x), self.upper.y.max(point.y));
     }
@@ -78,13 +82,15 @@ mod tests {
 
     #[test]
     fn test_from_points() {
-        let points = vec![
+        let box2d: Box2D = [
             Vec2D::new(0, 0),
             Vec2D::new(2, 2),
             Vec2D::new(1, 1),
             Vec2D::new(1, 0),
-        ];
-        let box2d = Box2D::from_points(points);
+        ]
+        .iter()
+        .copied()
+        .collect();
         assert_eq!(box2d, Box2D::new(Vec2D::new(0, 0), Vec2D::new(2, 2)));
     }
 }
