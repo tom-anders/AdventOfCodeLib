@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn parse_vec2() {
-        use crate::vec2d::Vec2D;
+        use crate::math::Vec2D;
         let input = Input {
             raw: "(1, 2)\n[3, 4]\n".to_string(),
         };

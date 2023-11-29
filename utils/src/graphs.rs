@@ -139,7 +139,7 @@ mod tests {
 
     use crate::{
         grid::{self, Grid},
-        Vec2D,
+        math::Vec2D,
     };
 
     use super::*;

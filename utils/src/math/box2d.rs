@@ -1,4 +1,4 @@
-use crate::vec2d::Vec2D;
+use crate::math::Vec2D;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Box2D {

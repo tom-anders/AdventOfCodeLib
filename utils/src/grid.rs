@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::{graphs, Vec2D};
+use crate::{graphs, math::Vec2D};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Grid<T> {
