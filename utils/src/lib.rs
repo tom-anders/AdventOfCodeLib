@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, fmt::Display};
 
 use regex::Regex;
 
@@ -14,6 +14,24 @@ pub mod grid;
 pub struct Solution {
     pub part1: Option<String>,
     pub part2: Option<String>,
+}
+
+impl Solution {
+    pub fn copy_to_clipboard(&self) {
+        let solution_to_copy = if self.part2.is_some() {
+            &self.part2
+        } else {
+            &self.part1
+        };
+
+        if let Some(solution_to_copy) = solution_to_copy {
+            std::process::Command::new("bash")
+                .arg("-c")
+                .arg(format!("echo {} | xclip -r -selection clipboard", solution_to_copy))
+                .spawn()
+                .expect("Failed to copy solution to clipboard");
+        }
+    }
 }
 
 trait PartSolution {
@@ -57,6 +75,19 @@ impl<T: PartSolution, U: PartSolution> From<(T, U)> for Solution {
             part1: part1.as_part_solution(),
             part2: part2.as_part_solution(),
         }
+    }
+}
+
+impl Display for Solution {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(part1) = &self.part1 {
+            writeln!(f, "Solutions:")?;
+            writeln!(f, "Part 1: {}", part1)?;
+        }
+        if let Some(part2) = &self.part2 {
+            writeln!(f, "Part 2: {}", part2)?;
+        }
+        Ok(())
     }
 }
 
