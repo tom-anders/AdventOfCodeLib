@@ -59,6 +59,23 @@ impl Input {
             .into()
     }
 
+    pub fn number_grid(&self) -> Grid<usize> {
+        self.parse_grid_from_characters()
+    }
+
+    pub fn char_grid(&self) -> Grid<char> {
+        self.lines().map(str::chars).collect()
+    }
+
+    pub fn parse_grid_from_characters<T: FromStr>(&self) -> Grid<T>
+    where
+        <T as std::str::FromStr>::Err: std::fmt::Debug,
+    {
+        self.lines()
+            .map(|line| line.chars().map(|c| c.to_string().parse().unwrap()))
+            .collect()
+    }
+
     pub fn chars(&self) -> impl Iterator<Item = Chars<'_>> + '_ {
         self.lines().map(|line| line.chars())
     }
@@ -171,5 +188,16 @@ mod tests {
             ]),
             input.parse_grid(",")
         );
+    }
+
+    #[test]
+    fn parse_grid_from_characters() {
+        let input = Input {
+            raw: "1234\n4567\n".to_string(),
+        };
+        assert_eq!(
+            Grid::from([[1, 2, 3, 4], [4, 5, 6, 7]]),
+            input.parse_grid_from_characters()
+        )
     }
 }
