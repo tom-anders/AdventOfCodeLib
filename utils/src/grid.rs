@@ -7,6 +7,14 @@ pub struct Grid<T> {
     data: Vec<Vec<T>>,
 }
 
+impl<T, InnerIter> FromIterator<InnerIter> for Grid<T>
+where InnerIter: IntoIterator<Item = T>
+{
+    fn from_iter<I: IntoIterator<Item = InnerIter>>(iter: I) -> Self {
+        iter.into()
+    }
+}
+
 impl<T, InnerIter: IntoIterator<Item = T>, Iter: IntoIterator<Item = InnerIter>> From<Iter>
     for Grid<T>
 {
@@ -232,7 +240,7 @@ mod tests {
     use super::*;
     #[test]
     fn iter_row_and_col() {
-        let grid: Grid<_> = vec![vec![1, 2, 3], vec![4, 5, 6]].into();
+        let grid: Grid<_> = [[1, 2, 3], [4, 5, 6]].into();
 
         assert_eq!(
             grid.row(0).collect_vec(),
@@ -312,24 +320,24 @@ mod tests {
 
     #[test]
     fn rotate_rows_and_cols() {
-        let mut grid: Grid<_> = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]].into();
+        let mut grid: Grid<_> = [[1, 2, 3], [4, 5, 6], [7, 8, 9]].into();
 
         grid.rotate_row_left(0, 1);
-        assert_eq!(grid.data, vec![vec![2, 3, 1], vec![4, 5, 6], vec![7, 8, 9]]);
+        assert_eq!(grid.data, [[2, 3, 1], [4, 5, 6], [7, 8, 9]]);
 
         grid.rotate_row_right(0, 1);
-        assert_eq!(grid.data, vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+        assert_eq!(grid.data, [[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
 
         grid.rotate_row_left(1, 2);
-        assert_eq!(grid.data, vec![vec![1, 2, 3], vec![6, 4, 5], vec![7, 8, 9]]);
+        assert_eq!(grid.data, [[1, 2, 3], [6, 4, 5], [7, 8, 9]]);
 
         grid.rotate_row_right(1, 2);
-        assert_eq!(grid.data, vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+        assert_eq!(grid.data, [[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
 
         grid.rotate_col_up(0, 1);
-        assert_eq!(grid.data, vec![vec![4, 2, 3], vec![7, 5, 6], vec![1, 8, 9]]);
+        assert_eq!(grid.data, [[4, 2, 3], [7, 5, 6], [1, 8, 9]]);
 
         grid.rotate_col_down(0, 2);
-        assert_eq!(grid.data, vec![vec![7, 2, 3], vec![1, 5, 6], vec![4, 8, 9]]);
+        assert_eq!(grid.data, [[7, 2, 3], [1, 5, 6], [4, 8, 9]]);
     }
 }
