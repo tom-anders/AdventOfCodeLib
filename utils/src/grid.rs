@@ -36,9 +36,22 @@ impl<T> Grid<T> {
         Grid { data }
     }
 
+    pub fn inner(&self) -> &Vec<Vec<T>> {
+        &self.data
+    }
+
+    pub fn inner_mut(&mut self) -> &mut Vec<Vec<T>> {
+        &mut self.data
+    }
+
     pub fn get(&self, pos: impl Into<Vec2D>) -> &T {
         let pos = pos.into();
         &self.data[pos.y as usize][pos.x as usize]
+    }
+
+    pub fn get_mut(&mut self, pos: impl Into<Vec2D>) -> &mut T {
+        let pos = pos.into();
+        &mut self.data[pos.y as usize][pos.x as usize]
     }
 
     pub fn contains(&self, pos: &Vec2D) -> bool {

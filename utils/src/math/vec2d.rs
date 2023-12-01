@@ -101,6 +101,16 @@ where
     }
 }
 
+impl<T, U> From<&(T, U)> for Vec2D
+where
+    T: num::ToPrimitive + Copy,
+    U: num::ToPrimitive + Copy,
+{
+    fn from((x, y): &(T, U)) -> Self {
+        Self::from((*x, *y))
+    }
+}
+
 /// Again, horrible in production, but nice for AoC.
 /// This way we don't need to manually convert before multiplying.
 impl<T> std::ops::Mul<T> for Vec2D

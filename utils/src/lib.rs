@@ -10,6 +10,7 @@ pub use input::*;
 pub mod graphs;
 
 pub mod grid;
+pub mod sparse_grid;
 
 pub struct Solution {
     pub part1: Option<String>,
