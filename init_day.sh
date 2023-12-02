@@ -20,6 +20,7 @@ if [[ ! -d $day_package ]]; then
     cat << EOF >> $day_package/Cargo.toml
 aoc_derive.path = '../aoc_derive'
 utils.path = '../utils'
+derive_more.workspace = true
 itertools.workspace = true
 ndarray.workspace = true
 num.workspace = true
@@ -31,13 +32,7 @@ EOF
 
     cat << EOF > $impl
 use aoc_derive::aoc_main;
-#[allow(unused_imports)]
-use itertools::Itertools;
-#[allow(unused_imports)]
-use parse_display::FromStr;
-#[allow(unused_imports)]
 use utils::ParseInput;
-#[allow(unused_imports)]
 use utils::*;
 
 #[aoc_main]
