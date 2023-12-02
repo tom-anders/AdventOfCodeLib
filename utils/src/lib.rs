@@ -12,6 +12,18 @@ pub mod graphs;
 pub mod grid;
 pub mod sparse_grid;
 
+pub trait EvenMoreItertools: Iterator {
+    fn sum_u64<I>(self) -> u64
+    where
+        Self: Iterator<Item = I> + Sized,
+        I: Into<u64>,
+    {
+        self.map(I::into).sum()
+    }
+}
+
+impl<T: ?Sized> EvenMoreItertools for T where T: Iterator {}
+
 pub struct Solution {
     pub part1: Option<String>,
     pub part2: Option<String>,
