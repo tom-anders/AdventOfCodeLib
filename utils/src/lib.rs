@@ -123,3 +123,42 @@ impl Numbers for &str {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::{HashSet, HashMap};
+
+    #[test]
+    fn collect_from_str() {
+        #[derive(aoc_derive::CollectFromStr, PartialEq, Debug)]
+        struct ContainsVec(Vec<usize>);
+
+        assert_eq!(Ok(ContainsVec(vec![1, 2, 3])), " 1, 2, 3".parse());
+
+        #[derive(aoc_derive::CollectFromStr, PartialEq, Debug)]
+        #[sep = ":"]
+        struct ContainsVecColonSep(Vec<i32>);
+
+        assert_eq!(Ok(ContainsVecColonSep(vec![-1, 2, -3])), " -1: 2: -3".parse());
+
+        #[derive(aoc_derive::CollectFromStr, PartialEq, Debug)]
+        struct ContainsHashSet(HashSet<i32>);
+
+        assert_eq!(Ok(ContainsHashSet([-1, 2, -3].into_iter().collect())), "-1, 2, -3".parse());
+    }
+
+    #[test]
+    fn hash_map_from_str() {
+        #[derive(aoc_derive::HashMapFromStr, PartialEq, Debug)]
+        struct ContainsHashMap(HashMap<i32, i32>);
+
+        assert_eq!(Ok(ContainsHashMap([(-1, 2), (3, 4)].iter().cloned().collect())), "-1: 2, 3: 4".parse());
+
+        #[derive(aoc_derive::HashMapFromStr, PartialEq, Debug)]
+        #[sep = ";"]
+        #[inner_sep = "=>"]
+        struct ContainsHashMapCustomSep(HashMap<i32, i32>);
+
+        assert_eq!(Ok(ContainsHashMapCustomSep([(-1, 2), (3, 4)].iter().cloned().collect())), "-1 => 2 ; 3 => 4".parse());
+    }
+}
