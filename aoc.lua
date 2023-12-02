@@ -41,11 +41,16 @@ M.init = function(day, impl, example, input)
                 strategy = {
                     'toggleterm',
                     use_shell = true, -- Needed for xclip to work correctly
+                    direction = "horizontal",
+                    auto_scroll = true,
                     on_create = function()
                         vim.keymap.set('n', 'q', ':q<CR>', {buffer = true, silent = true})
-                        vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', {buffer = true})
-                    end
-                }
+                        -- Open in new tab
+                        vim.keymap.set('n', 't', '<C-w>T<CR>', {buffer = true})
+                        -- https://github.com/stevearc/overseer.nvim/issues/186
+                        vim.cmd("stopinsert")
+                    end,
+                },
             }
         end,
         params = {
