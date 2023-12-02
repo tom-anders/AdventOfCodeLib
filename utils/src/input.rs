@@ -43,7 +43,7 @@ impl Input {
         self.split_and_parse(sep)
     }
 
-    pub fn parse_lines<T: FromStr>(&self) -> impl Iterator<Item = T> + '_
+    pub fn parse_lines<T: FromStr>(&self) -> impl Iterator<Item = T> + '_ + Clone 
     where
         <T as std::str::FromStr>::Err: std::fmt::Debug,
     {
@@ -86,7 +86,7 @@ impl Input {
 }
 
 pub trait ParseInput<T> {
-    fn parse_lines(input: &Input) -> impl Iterator<Item = T>;
+    fn parse_lines(input: &Input) -> impl Iterator<Item = T> + Clone;
     fn split_and_parse(input: &Input, sep: &'static str) -> impl Iterator<Item = T>;
 }
 
@@ -95,7 +95,7 @@ where
     T: FromStr,
     <T as std::str::FromStr>::Err: std::fmt::Debug,
 {
-    fn parse_lines(input: &Input) -> impl Iterator<Item = T> {
+    fn parse_lines(input: &Input) -> impl Iterator<Item = T> + Clone {
         input.parse_lines()
     }
 
