@@ -134,6 +134,14 @@ where
         }
     }
 
+    pub fn pad_edges(self, with: T) -> Self {
+        let mut grid = Grid::with_value(with, self.num_rows() + 2, self.num_cols() + 2);
+        for (pos, item) in self.iter() {
+            *grid.get_mut(pos + (1, 1)) = item.clone();
+        }
+        grid
+    }
+
     fn rotate_col(&mut self, col: usize, mid: usize, up: bool) {
         let mut new_col = self.col(col).map(|(_, item)| item).cloned().collect_vec();
         if up {
@@ -352,5 +360,20 @@ mod tests {
 
         grid.rotate_col_down(0, 2);
         assert_eq!(grid.data, [[7, 2, 3], [1, 5, 6], [4, 8, 9]]);
+    }
+
+    #[test]
+    fn pad_edges() {
+        let grid: Grid<_> = [[1, 2, 3], [4, 5, 6]].into();
+        let padded = grid.pad_edges(0);
+        assert_eq!(
+            padded.data,
+            vec![
+                vec![0, 0, 0, 0, 0],
+                vec![0, 1, 2, 3, 0],
+                vec![0, 4, 5, 6, 0],
+                vec![0, 0, 0, 0, 0],
+            ]
+        );
     }
 }
