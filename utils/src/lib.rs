@@ -1,4 +1,4 @@
-use std::{str::FromStr, fmt::Display};
+use std::{fmt::Display, str::FromStr};
 
 use regex::Regex;
 
@@ -20,6 +20,28 @@ pub trait EvenMoreItertools: Iterator {
     {
         self.map(I::into).sum()
     }
+
+    fn fold_digits_to_number<N, I>(self) -> N
+    where
+        Self: Iterator<Item = I> + Sized,
+        N: FromStr, 
+        <N as std::str::FromStr>::Err: std::fmt::Debug,
+        I: std::fmt::Display,
+    {
+        self
+            .map(|i| i.to_string())
+            .collect::<String>()
+            .parse()
+            .unwrap()
+    }
+
+    fn fold_digits_to_u64<I>(self) -> u64
+    where
+        Self: Iterator<Item = I> + Sized,
+        I: std::fmt::Display,
+    {
+        self.fold_digits_to_number()
+    }
 }
 
 impl<T: ?Sized> EvenMoreItertools for T where T: Iterator {}
@@ -40,7 +62,10 @@ impl Solution {
         if let Some(solution_to_copy) = solution_to_copy {
             std::process::Command::new("bash")
                 .arg("-c")
-                .arg(format!("echo {} | xclip -r -selection clipboard", solution_to_copy))
+                .arg(format!(
+                    "echo {} | xclip -r -selection clipboard",
+                    solution_to_copy
+                ))
                 .spawn()
                 .expect("Failed to copy solution to clipboard");
         }
@@ -50,7 +75,6 @@ impl Solution {
 trait PartSolution {
     fn as_part_solution(&self) -> Option<String>;
 }
-
 
 // Rusts's orphan rules prevent a generic implementation because ToString is not implemented
 // for (), so do this manually here for all types that might be aoc solutions
@@ -126,7 +150,14 @@ impl Numbers for &str {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::{HashSet, HashMap};
+    use std::collections::{HashMap, HashSet};
+    use super::*;
+
+    #[test]
+    fn fold_digits() {
+        assert_eq!(123, [1, 2, 3].into_iter().fold_digits_to_number());
+        assert_eq!(123, ["1", "2", "3"].into_iter().fold_digits_to_number());
+    }
 
     #[test]
     fn collect_from_str() {
@@ -139,12 +170,18 @@ mod tests {
         #[sep = ":"]
         struct ContainsVecColonSep(Vec<i32>);
 
-        assert_eq!(Ok(ContainsVecColonSep(vec![-1, 2, -3])), " -1: 2: -3".parse());
+        assert_eq!(
+            Ok(ContainsVecColonSep(vec![-1, 2, -3])),
+            " -1: 2: -3".parse()
+        );
 
         #[derive(aoc_derive::CollectFromStr, PartialEq, Debug)]
         struct ContainsHashSet(HashSet<i32>);
 
-        assert_eq!(Ok(ContainsHashSet([-1, 2, -3].into_iter().collect())), "-1, 2, -3".parse());
+        assert_eq!(
+            Ok(ContainsHashSet([-1, 2, -3].into_iter().collect())),
+            "-1, 2, -3".parse()
+        );
     }
 
     #[test]
@@ -152,13 +189,21 @@ mod tests {
         #[derive(aoc_derive::HashMapFromStr, PartialEq, Debug)]
         struct ContainsHashMap(HashMap<i32, i32>);
 
-        assert_eq!(Ok(ContainsHashMap([(-1, 2), (3, 4)].iter().cloned().collect())), "-1: 2, 3: 4".parse());
+        assert_eq!(
+            Ok(ContainsHashMap([(-1, 2), (3, 4)].iter().cloned().collect())),
+            "-1: 2, 3: 4".parse()
+        );
 
         #[derive(aoc_derive::HashMapFromStr, PartialEq, Debug)]
         #[sep = ";"]
         #[inner_sep = "=>"]
         struct ContainsHashMapCustomSep(HashMap<i32, i32>);
 
-        assert_eq!(Ok(ContainsHashMapCustomSep([(-1, 2), (3, 4)].iter().cloned().collect())), "-1 => 2 ; 3 => 4".parse());
+        assert_eq!(
+            Ok(ContainsHashMapCustomSep(
+                [(-1, 2), (3, 4)].iter().cloned().collect()
+            )),
+            "-1 => 2 ; 3 => 4".parse()
+        );
     }
 }
