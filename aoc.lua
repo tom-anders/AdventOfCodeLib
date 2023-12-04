@@ -3,9 +3,17 @@ local M = {}
 M.init = function(day, impl, example, input)
     vim.cmd.edit(impl)
     vim.cmd 'Copilot disable' -- no spoilers please
-    vim.cmd.vsplit(example)
-    vim.cmd.split(input)
+
+    vim.cmd.vsplit()
+    vim.cmd(string.format("terminal zsh -c 'git ls-files | entr cargo run --package day%d %s'", day, example))
+    vim.cmd 'normal G' -- Scroll to bottom on new output
+
+    vim.cmd.split(example)
+    vim.cmd 'wincmd 10-'
+
+    -- back o main window
     vim.cmd 'wincmd h'
+    vim.cmd 'wincmd 10>'
 
     vim.cmd(string.format('DebugExe target/debug/day%d', day))
 
