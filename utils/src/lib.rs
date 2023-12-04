@@ -1,7 +1,5 @@
 use std::{fmt::Display, str::FromStr};
 
-use regex::Regex;
-
 pub mod math;
 
 mod input;
@@ -11,6 +9,9 @@ pub mod graphs;
 
 pub mod grid;
 pub mod sparse_grid;
+
+mod regex_helper;
+pub use regex_helper::*;
 
 pub trait EvenMoreItertools: Iterator {
     fn sum_u64<I>(self) -> u64
@@ -135,26 +136,6 @@ impl Display for Solution {
             writeln!(f, "Part 2: {}", part2)?;
         }
         Ok(())
-    }
-}
-
-pub trait Numbers {
-    fn numbers<T>(&self) -> Vec<T>
-    where
-        T: num::Integer + FromStr,
-        <T as std::str::FromStr>::Err: std::fmt::Debug;
-}
-
-impl Numbers for &str {
-    fn numbers<T>(&self) -> Vec<T>
-    where
-        T: num::Integer + FromStr,
-        <T as std::str::FromStr>::Err: std::fmt::Debug,
-    {
-        let reg = Regex::new(r"-?\d+").unwrap();
-        reg.find_iter(self)
-            .map(|m| m.as_str().parse::<T>().unwrap())
-            .collect()
     }
 }
 

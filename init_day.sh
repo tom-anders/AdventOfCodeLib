@@ -22,6 +22,7 @@ aoc_derive.path = '../aoc_derive'
 utils.path = '../utils'
 derive_more.workspace = true
 itertools.workspace = true
+lazy-regex.workspace = true
 ndarray.workspace = true
 num.workspace = true
 parse-display.workspace = true
@@ -34,6 +35,7 @@ EOF
 use aoc_derive::aoc_main;
 use utils::ParseInput;
 use utils::*;
+use lazy_regex::regex!;
 
 #[aoc_main]
 fn solve(input: Input) -> impl Into<Solution> {
