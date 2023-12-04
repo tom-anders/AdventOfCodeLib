@@ -16,9 +16,19 @@ pub trait EvenMoreItertools: Iterator {
     fn sum_u64<I>(self) -> u64
     where
         Self: Iterator<Item = I> + Sized,
-        I: Into<u64>,
+        I: TryInto<u64>,
+        <I as std::convert::TryInto<u64>>::Error: std::fmt::Debug,
     {
-        self.map(I::into).sum()
+        self.map(|i| i.try_into().unwrap()).sum()
+    }
+
+    fn sum_i64<I>(self) -> i64
+    where
+        Self: Iterator<Item = I> + Sized,
+        I: TryInto<i64>,
+        <I as std::convert::TryInto<i64>>::Error: std::fmt::Debug,
+    {
+        self.map(|i| i.try_into().unwrap()).sum()
     }
 
     fn fold_digits_to_number<N, I>(self) -> N
