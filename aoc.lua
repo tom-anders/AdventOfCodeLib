@@ -5,7 +5,7 @@ M.init = function(day, impl, example, input)
     vim.cmd 'Copilot disable' -- no spoilers please
 
     vim.cmd.vsplit()
-    vim.cmd(string.format("terminal zsh -c 'git ls-files | entr cargo run --package day%d %s'", day, example))
+    vim.cmd(string.format("terminal zsh -c 'git ls-files | entr cargo test --package day%d -- --nocapture --test-threads=1'", day))
     vim.cmd 'normal G' -- Scroll to bottom on new output
 
     vim.cmd.split(example)

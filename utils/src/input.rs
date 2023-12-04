@@ -15,6 +15,12 @@ impl Input {
         }
     }
 
+    pub fn from_str(s: &str) -> Input {
+        Input {
+            raw: s.to_string(),
+        }
+    }
+
     pub fn lines(&self) -> impl Iterator<Item = &str> + '_ {
         self.raw.lines()
     }

@@ -1,4 +1,4 @@
-# !/usr/bin/env zsh
+#!/usr/bin/env zsh
 
 set -o errexit
 set -o nounset
@@ -29,17 +29,36 @@ parse-display.workspace = true
 priority-queue.workspace = true
 rayon.workspace = true
 regex.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true
 EOF
 
     cat << EOF > $impl
 use aoc_derive::aoc_main;
 use utils::ParseInput;
 use utils::*;
-use lazy_regex::regex!;
+use lazy_regex::regex;
 
 #[aoc_main]
 fn solve(input: Input) -> impl Into<Solution> {
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use utils::assert_example;
+    use pretty_assertions::{assert_eq, assert_ne};
+    #[test]
+    fn test_examples() {
+        use utils::assert_example;
+        assert_example!(
+            r#"
+                "#,
+            ""
+        );
+    }
 }
 EOF
 

@@ -35,12 +35,11 @@ pub trait EvenMoreItertools: Iterator {
     fn fold_digits_to_number<N, I>(self) -> N
     where
         Self: Iterator<Item = I> + Sized,
-        N: FromStr, 
+        N: FromStr,
         <N as std::str::FromStr>::Err: std::fmt::Debug,
         I: std::fmt::Display,
     {
-        self
-            .map(|i| i.to_string())
+        self.map(|i| i.to_string())
             .collect::<String>()
             .parse()
             .unwrap()
@@ -57,6 +56,7 @@ pub trait EvenMoreItertools: Iterator {
 
 impl<T: ?Sized> EvenMoreItertools for T where T: Iterator {}
 
+#[derive(Debug, PartialEq)]
 pub struct Solution {
     pub part1: Option<String>,
     pub part2: Option<String>,
@@ -139,10 +139,22 @@ impl Display for Solution {
     }
 }
 
+#[macro_export]
+macro_rules! assert_example {
+    ($input:expr, $part1:expr, $part2:expr) => {
+        assert_eq!(solve(Input::from_str($input.trim())).into(), Solution::from(($part1, $part2)));
+    };
+    ($input:expr, $part1:expr) => {
+        let solution = solve(Input::from_str($input.trim())).into();
+        assert_eq!(solution.part1, Some($part1.to_string()));
+        assert_eq!(solve(Input::from_str($input.trim())).into(), Solution { part1: Some($part1.to_string()), part2: None });
+    };
+}
+
 #[cfg(test)]
 mod tests {
-    use std::collections::{HashMap, HashSet};
     use super::*;
+    use std::collections::{HashMap, HashSet};
 
     #[test]
     fn fold_digits() {
