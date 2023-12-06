@@ -142,12 +142,12 @@ impl Display for Solution {
 #[macro_export]
 macro_rules! assert_example {
     ($input:expr, $part1:expr, $part2:expr) => {
-        assert_eq!(solve(Input::from_str($input.trim())).into(), Solution::from(($part1, $part2)));
+        pretty_assertions::assert_eq!(solve(Input::from_str($input.trim())).into(), Solution::from(($part1, $part2)));
     };
     ($input:expr, $part1:expr) => {
         let solution = solve(Input::from_str($input.trim())).into();
-        assert_eq!(solution.part1, Some($part1.to_string()));
-        assert_eq!(solve(Input::from_str($input.trim())).into(), Solution { part1: Some($part1.to_string()), part2: None });
+        pretty_assertions::assert_eq!(solution.part1, Some($part1.to_string()));
+        pretty_assertions::assert_eq!(solve(Input::from_str($input.trim())).into(), Solution { part1: Some($part1.to_string()), part2: None });
     };
 }
 
