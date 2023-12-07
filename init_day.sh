@@ -48,8 +48,6 @@ fn solve(input: Input) -> impl Into<Solution> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use utils::assert_example;
-    use pretty_assertions::{assert_eq, assert_ne};
     #[test]
     fn test_examples() {
         use utils::assert_example;
