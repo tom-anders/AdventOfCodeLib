@@ -150,6 +150,14 @@ macro_rules! assert_example {
     };
 }
 
+#[macro_export]
+macro_rules! assert_part2 {
+    ($input:expr, $part2:expr) => {
+        let solution = solve(Input::from_str($input.trim())).into();
+        pretty_assertions::assert_eq!(solution.part2, Some($part2.to_string()));
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

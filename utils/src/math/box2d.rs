@@ -30,6 +30,14 @@ impl Box2D {
         }
     }
 
+    pub fn lower(&self) -> Vec2D {
+        self.lower
+    }
+
+    pub fn upper(&self) -> Vec2D {
+        self.upper
+    }
+
     pub fn contains(&self, point: impl Into<Vec2D>) -> bool {
         let point = point.into();
         point.x >= self.lower.x
