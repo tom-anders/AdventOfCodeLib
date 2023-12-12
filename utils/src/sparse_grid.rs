@@ -6,17 +6,17 @@ use std::{
 
 use crate::math::Vec2D;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Default, derive_more::From)]
 pub struct SparseGrid<T> {
     data: HashMap<Vec2D, T>,
 }
 
 impl<T: Hash, V: Into<Vec2D>> FromIterator<(V, T)> for SparseGrid<T> {
     fn from_iter<I: IntoIterator<Item = (V, T)>>(iter: I) -> Self {
-        Self::new(
+        Self::from(
             iter.into_iter()
                 .map(|(pos, val)| (pos.into(), val))
-                .collect(),
+                .collect::<HashMap<_,_>>(),
         )
     }
 }
@@ -39,8 +39,8 @@ impl<T> SparseGrid<T>
 where
     T: Hash,
 {
-    pub fn new(data: HashMap<Vec2D, T>) -> Self {
-        SparseGrid { data }
+    pub fn new() -> Self {
+        SparseGrid { data: HashMap::new() }
     }
 
     pub fn get(&self, pos: impl Into<Vec2D>) -> Option<&T> {
