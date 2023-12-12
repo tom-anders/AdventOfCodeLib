@@ -20,6 +20,10 @@ impl Vec2D {
         Self { x, y }
     }
 
+    pub fn xy_tuple(&self) -> (i64, i64) {
+        (self.x, self.y)
+    }
+
     pub fn zero() -> Self {
         Self::new(0, 0)
     }
@@ -193,6 +197,7 @@ mod tests {
     fn arithmetics() {
         let mut vec = Vec2D::new(0, 0) + (-1, 1);
         assert_eq!(vec, (-1, 1));
+        assert_eq!(vec.xy_tuple(), (-1, 1));
 
         vec += (1, 2);
         assert_eq!(vec, (0, 3));
