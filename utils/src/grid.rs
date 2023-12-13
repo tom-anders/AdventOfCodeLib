@@ -8,7 +8,8 @@ pub struct Grid<T> {
 }
 
 impl<T, InnerIter> FromIterator<InnerIter> for Grid<T>
-where InnerIter: IntoIterator<Item = T>
+where
+    InnerIter: IntoIterator<Item = T>,
 {
     fn from_iter<I: IntoIterator<Item = InnerIter>>(iter: I) -> Self {
         iter.into()
@@ -20,13 +21,26 @@ impl<T, InnerIter: IntoIterator<Item = T>, Iter: IntoIterator<Item = InnerIter>>
 {
     fn from(iter: Iter) -> Self {
         let grid = Grid {
-            data: iter
-                .into_iter()
-                .map(|iter| iter.into_iter().collect_vec())
-                .collect_vec(),
+            data: iter.into_iter().map(|iter| iter.into_iter().collect_vec()).collect_vec(),
         };
         assert!(grid.data.iter().all(|row| row.len() == grid.data[0].len()));
         grid
+    }
+}
+
+/// Never do this in production, but in AoC implicit conversion between integer types is very
+/// helpful, we assume there's never any overflow
+pub trait UnwrapIntoUsize {
+    fn unwrap_usize(self) -> usize;
+}
+
+impl<T> UnwrapIntoUsize for T
+where
+    T: TryInto<usize>,
+    <T as TryInto<usize>>::Error: std::fmt::Debug,
+{
+    fn unwrap_usize(self) -> usize {
+        self.try_into().unwrap()
     }
 }
 
@@ -62,11 +76,13 @@ impl<T> Grid<T> {
         self.data.len()
     }
 
-    pub fn row(&self, row: usize) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
-        self.data[row]
-            .iter()
-            .enumerate()
-            .map(move |(col, item)| ((col, row).into(), item))
+    pub fn row(&self, row: impl UnwrapIntoUsize) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
+        let row = row.unwrap_usize();
+        self.data[row].iter().enumerate().map(move |(col, item)| ((col, row).into(), item))
+    }
+
+    pub fn row_values(&self, row: impl UnwrapIntoUsize) -> impl Iterator<Item = &T> + '_ {
+        self.row(row.unwrap_usize()).map(|(_, item)| item)
     }
 
     pub fn rotate_row_left(&mut self, row: usize, mid: usize) {
@@ -85,8 +101,12 @@ impl<T> Grid<T> {
         self.data[0].len()
     }
 
-    pub fn col(&self, col: usize) -> ColIter<'_, T> {
-        ColIter::new(self, col)
+    pub fn col(&self, col: impl UnwrapIntoUsize) -> ColIter<'_, T> {
+        ColIter::new(self, col.unwrap_usize())
+    }
+
+    pub fn col_values(&self, col: impl UnwrapIntoUsize) -> impl Iterator<Item = &T> + '_ {
+        self.col(col).map(|(_, item)| item)
     }
 
     pub fn cols(&self) -> impl Iterator<Item = ColIter<'_, T>> + '_ {
@@ -106,21 +126,18 @@ impl<T> Grid<T> {
         &'a self,
         pos: &'b Vec2D,
     ) -> impl Iterator<Item = Vec2D> + 'a {
-        pos.orthogonal_neighbors()
-            .filter(move |neighbor| self.contains(neighbor))
+        pos.orthogonal_neighbors().filter(move |neighbor| self.contains(neighbor))
     }
 
     pub fn diagonal_neighbors<'a, 'b: 'a>(
         &'a self,
         pos: &'b Vec2D,
     ) -> impl Iterator<Item = Vec2D> + 'a {
-        pos.diagonal_neighbors()
-            .filter(move |neighbor| self.contains(neighbor))
+        pos.diagonal_neighbors().filter(move |neighbor| self.contains(neighbor))
     }
 
     pub fn all_neighbors<'a, 'b: 'a>(&'a self, pos: &'b Vec2D) -> impl Iterator<Item = Vec2D> + 'a {
-        pos.all_neighbors()
-            .filter(move |neighbor| self.contains(neighbor))
+        pos.all_neighbors().filter(move |neighbor| self.contains(neighbor))
     }
 }
 
@@ -129,9 +146,7 @@ where
     T: Clone,
 {
     pub fn with_value(val: T, num_rows: usize, num_cols: usize) -> Self {
-        Grid {
-            data: vec![vec![val; num_cols]; num_rows],
-        }
+        Grid { data: vec![vec![val; num_cols]; num_rows] }
     }
 
     pub fn pad_edges(self, with: T) -> Self {
@@ -173,12 +188,7 @@ pub struct ColIter<'a, T> {
 
 impl<'a, T> ColIter<'a, T> {
     fn new(grid: &'a Grid<T>, col: usize) -> Self {
-        ColIter {
-            grid,
-            row: 0,
-            row_back: grid.num_rows(),
-            col,
-        }
+        ColIter { grid, row: 0, row_back: grid.num_rows(), col }
     }
 }
 
@@ -265,51 +275,28 @@ mod tests {
 
         assert_eq!(
             grid.row(0).collect_vec(),
-            vec![
-                (Vec2D::new(0, 0), &1),
-                (Vec2D::new(1, 0), &2),
-                (Vec2D::new(2, 0), &3)
-            ]
+            vec![(Vec2D::new(0, 0), &1), (Vec2D::new(1, 0), &2), (Vec2D::new(2, 0), &3)]
         );
 
         assert_eq!(
             grid.row(0).rev().collect_vec(),
-            vec![
-                (Vec2D::new(2, 0), &3),
-                (Vec2D::new(1, 0), &2),
-                (Vec2D::new(0, 0), &1)
-            ]
+            vec![(Vec2D::new(2, 0), &3), (Vec2D::new(1, 0), &2), (Vec2D::new(0, 0), &1)]
         );
 
         assert_eq!(
             grid.row(1).collect_vec(),
-            vec![
-                (Vec2D::new(0, 1), &4),
-                (Vec2D::new(1, 1), &5),
-                (Vec2D::new(2, 1), &6)
-            ]
+            vec![(Vec2D::new(0, 1), &4), (Vec2D::new(1, 1), &5), (Vec2D::new(2, 1), &6)]
         );
 
         assert_eq!(
             grid.rows().map(|row| row.collect_vec()).collect_vec(),
             vec![
-                vec![
-                    (Vec2D::new(0, 0), &1),
-                    (Vec2D::new(1, 0), &2),
-                    (Vec2D::new(2, 0), &3)
-                ],
-                vec![
-                    (Vec2D::new(0, 1), &4),
-                    (Vec2D::new(1, 1), &5),
-                    (Vec2D::new(2, 1), &6)
-                ],
+                vec![(Vec2D::new(0, 0), &1), (Vec2D::new(1, 0), &2), (Vec2D::new(2, 0), &3)],
+                vec![(Vec2D::new(0, 1), &4), (Vec2D::new(1, 1), &5), (Vec2D::new(2, 1), &6)],
             ]
         );
 
-        assert_eq!(
-            grid.col(0).collect_vec(),
-            vec![(Vec2D::new(0, 0), &1), (Vec2D::new(0, 1), &4)]
-        );
+        assert_eq!(grid.col(0).collect_vec(), vec![(Vec2D::new(0, 0), &1), (Vec2D::new(0, 1), &4)]);
 
         assert_eq!(
             grid.col(0).rev().collect_vec(),
@@ -324,10 +311,7 @@ mod tests {
         assert_eq!(col0_iter.next(), None);
         assert_eq!(col0_iter.next_back(), None);
 
-        assert_eq!(
-            grid.col(1).collect_vec(),
-            vec![(Vec2D::new(1, 0), &2), (Vec2D::new(1, 1), &5)]
-        );
+        assert_eq!(grid.col(1).collect_vec(), vec![(Vec2D::new(1, 0), &2), (Vec2D::new(1, 1), &5)]);
 
         assert_eq!(
             grid.cols().map(|col| col.collect_vec()).collect_vec(),
