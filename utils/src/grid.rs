@@ -80,7 +80,10 @@ impl<T> Grid<T> {
         self.data.len()
     }
 
-    pub fn row(&self, row: impl UnwrapIntoUsize) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
+    pub fn row(
+        &self,
+        row: impl UnwrapIntoUsize,
+    ) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
         let row = row.unwrap_usize();
         self.data[row].iter().enumerate().map(move |(col, item)| ((col, row).into(), item))
     }
@@ -97,7 +100,9 @@ impl<T> Grid<T> {
         self.data[row].rotate_right(mid);
     }
 
-    pub fn rows(&self) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = (Vec2D, &T)>> + '_ {
+    pub fn rows(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = (Vec2D, &T)>> + '_ {
         (0..self.num_rows()).map(move |row| self.row(row))
     }
 
@@ -117,13 +122,20 @@ impl<T> Grid<T> {
         (0..self.num_cols()).map(move |col| self.col(col))
     }
 
-    pub fn coordinates(&self) -> impl Iterator<Item = Vec2D> + '_ {
-        // This very nice macro creates a cartesian product.
-        itertools::iproduct!(0..self.num_cols(), 0..self.num_rows()).map(Vec2D::from)
+    pub fn coordinates_col_major(&self) -> impl DoubleEndedIterator<Item = Vec2D> + '_ {
+        (0..self.num_cols())
+            .flat_map(|x| (0..self.num_rows()).map(move |y| (x, y)))
+            .map(Vec2D::from)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (Vec2D, &T)> + '_ {
-        self.coordinates().map(move |pos| (pos, self.get(pos)))
+    pub fn coordinates_row_major(&self) -> impl DoubleEndedIterator<Item = Vec2D> + '_ {
+        (0..self.num_rows())
+            .flat_map(|y| (0..self.num_cols()).map(move |x| (x, y)))
+            .map(Vec2D::from)
+    }
+
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
+        self.coordinates_row_major().map(move |pos| (pos, self.get(pos)))
     }
 
     pub fn orthogonal_neighbors<'a, 'b: 'a>(
@@ -159,6 +171,13 @@ where
             *grid.get_mut(pos + (1, 1)) = item.clone();
         }
         grid
+    }
+
+    pub fn swap(&mut self, lhs: Vec2D, rhs: Vec2D) {
+        // Can't use std::mem::swap here because it would require two mutable references to self
+        let tmp = self.get(lhs).clone();
+        *self.get_mut(lhs) = self.get(rhs).clone();
+        *self.get_mut(rhs) = tmp
     }
 
     fn rotate_col(&mut self, col: usize, mid: usize, up: bool) {
@@ -363,5 +382,45 @@ mod tests {
                 vec![0, 0, 0, 0, 0],
             ]
         );
+    }
+
+    #[test]
+    fn iter() {
+        let grid: Grid<_> = [[1, 2, 3], [4, 5, 6]].into();
+
+        assert_eq!(
+            grid.coordinates_row_major().collect_vec(),
+            vec![
+                Vec2D::new(0, 0),
+                Vec2D::new(1, 0),
+                Vec2D::new(2, 0),
+                Vec2D::new(0, 1),
+                Vec2D::new(1, 1),
+                Vec2D::new(2, 1),
+            ]
+        );
+        assert_eq!(
+            grid.coordinates_col_major().collect_vec(),
+            vec![
+                Vec2D::new(0, 0),
+                Vec2D::new(0, 1),
+                Vec2D::new(1, 0),
+                Vec2D::new(1, 1),
+                Vec2D::new(2, 0),
+                Vec2D::new(2, 1),
+            ]
+        );
+
+        assert_eq!(
+            grid.iter().collect_vec(),
+            vec![
+                (Vec2D::new(0, 0), &1),
+                (Vec2D::new(1, 0), &2),
+                (Vec2D::new(2, 0), &3),
+                (Vec2D::new(0, 1), &4),
+                (Vec2D::new(1, 1), &5),
+                (Vec2D::new(2, 1), &6)
+            ],
+        )
     }
 }
