@@ -93,7 +93,7 @@ impl<T> Grid<T> {
         self.data[row].rotate_right(mid);
     }
 
-    pub fn rows(&self) -> impl Iterator<Item = impl Iterator<Item = (Vec2D, &T)>> + '_ {
+    pub fn rows(&self) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = (Vec2D, &T)>> + '_ {
         (0..self.num_rows()).map(move |row| self.row(row))
     }
 
@@ -109,7 +109,7 @@ impl<T> Grid<T> {
         self.col(col).map(|(_, item)| item)
     }
 
-    pub fn cols(&self) -> impl Iterator<Item = ColIter<'_, T>> + '_ {
+    pub fn cols(&self) -> impl DoubleEndedIterator<Item = ColIter<'_, T>> + '_ {
         (0..self.num_cols()).map(move |col| self.col(col))
     }
 
