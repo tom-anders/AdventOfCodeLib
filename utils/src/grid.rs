@@ -63,6 +63,10 @@ impl<T> Grid<T> {
         &self.data[pos.y as usize][pos.x as usize]
     }
 
+    pub fn try_get(&self, pos: impl Into<Vec2D> + Copy) -> Option<&T> {
+        self.contains(&pos.into()).then(|| self.get(pos))
+    }
+
     pub fn get_mut(&mut self, pos: impl Into<Vec2D>) -> &mut T {
         let pos = pos.into();
         &mut self.data[pos.y as usize][pos.x as usize]
