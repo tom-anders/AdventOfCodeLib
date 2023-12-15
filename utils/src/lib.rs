@@ -14,6 +14,15 @@ mod regex_helper;
 pub use regex_helper::*;
 
 pub trait EvenMoreItertools: Iterator {
+    fn sum_usize<I>(self) -> usize
+    where
+        Self: Iterator<Item = I> + Sized,
+        I: TryInto<usize>,
+        <I as std::convert::TryInto<usize>>::Error: std::fmt::Debug,
+    {
+        self.map(|i| i.try_into().unwrap()).sum()
+    }
+
     fn sum_u64<I>(self) -> u64
     where
         Self: Iterator<Item = I> + Sized,
