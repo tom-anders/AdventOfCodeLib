@@ -181,7 +181,7 @@ mod tests {
     fn grid_diff() {
         impl grid::WeightedGrid for Grid<usize> {
             fn cost(&self, from: Vec2D, to: Vec2D) -> Cost {
-                self.get(to).abs_diff(*self.get(from))
+                self[to].abs_diff(self[from])
             }
 
             fn neighbors<'a, 'b: 'a>(
@@ -216,7 +216,7 @@ mod tests {
                 node: &'b Vec2D,
             ) -> impl Iterator<Item = Vec2D> + 'a {
                 self.all_neighbors(node)
-                    .filter(move |pos| self.get(*pos) != &'#')
+                    .filter(move |pos| self[*pos] != '#')
             }
         }
 

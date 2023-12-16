@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 use itertools::Itertools;
 
 use crate::{graphs, math::Vec2D};
@@ -44,6 +46,26 @@ where
     }
 }
 
+impl<T, Pos> Index<Pos> for Grid<T>
+where
+    Pos: Into<Vec2D>,
+{
+    type Output = T;
+
+    fn index(&self, pos: Pos) -> &Self::Output {
+        self.get(pos.into()).unwrap()
+    }
+}
+
+impl<T, Pos> IndexMut<Pos> for Grid<T>
+where
+    Pos: Into<Vec2D>,
+{
+    fn index_mut(&mut self, pos: Pos) -> &mut Self::Output {
+        self.get_mut(pos.into()).unwrap()
+    }
+}
+
 impl<T> Grid<T> {
     pub fn new(data: Vec<Vec<T>>) -> Self {
         assert!(data.iter().all(|row| row.len() == data[0].len()));
@@ -58,18 +80,14 @@ impl<T> Grid<T> {
         &mut self.data
     }
 
-    pub fn get(&self, pos: impl Into<Vec2D>) -> &T {
+    pub fn get(&self, pos: impl Into<Vec2D>) -> Option<&T> {
         let pos = pos.into();
-        &self.data[pos.y as usize][pos.x as usize]
+        self.contains(&pos).then(|| &self.data[pos.y as usize][pos.x as usize])
     }
 
-    pub fn try_get(&self, pos: impl Into<Vec2D> + Copy) -> Option<&T> {
-        self.contains(&pos.into()).then(|| self.get(pos))
-    }
-
-    pub fn get_mut(&mut self, pos: impl Into<Vec2D>) -> &mut T {
+    pub fn get_mut(&mut self, pos: impl Into<Vec2D>) -> Option<&mut T> {
         let pos = pos.into();
-        &mut self.data[pos.y as usize][pos.x as usize]
+        self.contains(&pos).then(|| &mut self.data[pos.y as usize][pos.x as usize])
     }
 
     pub fn contains(&self, pos: &Vec2D) -> bool {
@@ -135,7 +153,7 @@ impl<T> Grid<T> {
     }
 
     pub fn iter(&self) -> impl DoubleEndedIterator<Item = (Vec2D, &T)> + '_ {
-        self.coordinates_row_major().map(move |pos| (pos, self.get(pos)))
+        self.coordinates_row_major().map(move |pos| (pos, &self[pos]))
     }
 
     pub fn orthogonal_neighbors<'a, 'b: 'a>(
@@ -168,16 +186,16 @@ where
     pub fn pad_edges(self, with: T) -> Self {
         let mut grid = Grid::with_value(with, self.num_rows() + 2, self.num_cols() + 2);
         for (pos, item) in self.iter() {
-            *grid.get_mut(pos + (1, 1)) = item.clone();
+            grid[pos + (1, 1)] = item.clone();
         }
         grid
     }
 
     pub fn swap(&mut self, lhs: Vec2D, rhs: Vec2D) {
         // Can't use std::mem::swap here because it would require two mutable references to self
-        let tmp = self.get(lhs).clone();
-        *self.get_mut(lhs) = self.get(rhs).clone();
-        *self.get_mut(rhs) = tmp
+        let tmp = self[lhs].clone();
+        self[lhs] = self[rhs].clone();
+        self[rhs] = tmp
     }
 
     fn rotate_col(&mut self, col: usize, mid: usize, up: bool) {
@@ -223,7 +241,7 @@ impl<'a, T> Iterator for ColIter<'a, T> {
             return None;
         }
         let pos = (self.col, self.row).into();
-        let item = (pos, self.grid.get(pos));
+        let item = (pos, &self.grid[pos]);
         self.row += 1;
         Some(item)
     }
@@ -241,7 +259,7 @@ impl<'a, T> DoubleEndedIterator for ColIter<'a, T> {
         }
         self.row_back -= 1;
         let pos = (self.col, self.row_back).into();
-        let item = (pos, self.grid.get(pos));
+        let item = (pos, &self.grid[pos]);
         Some(item)
     }
 }
