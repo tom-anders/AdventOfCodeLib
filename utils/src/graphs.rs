@@ -59,22 +59,22 @@ pub trait WeightedGraph {
     ) -> impl Iterator<Item = (Self::Node, Cost)> + 'a;
 }
 
-pub fn dijkstra<T: Node>(
+pub fn dijkstra<T: Node, S: Into<T>>(
     graph: &impl WeightedGraph<Node = T>,
-    start: impl Into<T>,
-    end: impl Into<T>,
+    start_nodes: impl IntoIterator<Item = S>,
+    reached_target: impl Fn(&T) -> bool,
 ) -> Option<usize> {
-    let (start, end) = (start.into(), end.into());
-
     let mut visited = HashSet::new();
     let mut queue = PriorityQueue::new();
-    queue.push(start, std::cmp::Reverse(0));
+    for start_node in start_nodes.into_iter() {
+        queue.push(start_node.into(), std::cmp::Reverse(0));
+    }
 
     loop {
         match queue.pop() {
             None => return None,
             Some((node, Reverse(current_cost))) => {
-                if node == end {
+                if reached_target(&node) {
                     return Some(current_cost);
                 }
                 visited.insert(node.clone());
@@ -170,11 +170,11 @@ mod tests {
         edges.insert("F", vec![]);
         let graph = SimpleWeightedGraph { edges };
 
-        assert_eq!(dijkstra(&graph, "A", "B"), Some(1));
-        assert_eq!(dijkstra(&graph, "A", "D"), Some(2));
-        assert_eq!(dijkstra(&graph, "A", "C"), Some(5));
-        assert_eq!(dijkstra(&graph, "A", "F"), Some(6));
-        assert_eq!(dijkstra(&graph, "A", "G"), None);
+        assert_eq!(dijkstra(&graph, ["A"], |&node| node == "B"), Some(1));
+        assert_eq!(dijkstra(&graph, ["A"], |&node| node == "D"), Some(2));
+        assert_eq!(dijkstra(&graph, ["A"], |&node| node == "C"), Some(5));
+        assert_eq!(dijkstra(&graph, ["A"], |&node| node == "F"), Some(6));
+        assert_eq!(dijkstra(&graph, ["A"], |&node| node == "G"), None);
     }
 
     #[test]
@@ -201,11 +201,11 @@ mod tests {
         .into();
 
         assert_eq!(
-            dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(5, 3)),
+            dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(5, 3)),
             Some(11)
         );
-        assert_eq!(dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(-1, -1)), None);
-        assert_eq!(dijkstra(&grid, Vec2D::new(0, 0), Vec2D::new(0, 0)), Some(0));
+        assert_eq!(dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(-1, -1)), None);
+        assert_eq!(dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(0, 0)), Some(0));
     }
 
     #[test]
