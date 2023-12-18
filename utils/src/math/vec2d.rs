@@ -56,7 +56,7 @@ impl Vec2D {
         self.x.abs() + self.y.abs()
     }
 
-    pub fn both_coordinates_non_negative(&self) -> bool {
+    pub fn both_coordinates_positive(&self) -> bool {
         self.x >= 0 && self.y >= 0
     }
 

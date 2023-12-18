@@ -36,6 +36,10 @@ impl Box2D {
         self.upper
     }
 
+    pub fn extend_border(&self, amount: i64) -> Self {
+        Self::new(self.lower - (amount, amount), self.upper + (amount, amount))
+    }
+
     pub fn contains(&self, point: &Vec2D) -> bool {
         point.x >= self.lower.x
             && point.y >= self.lower.y
@@ -47,6 +51,10 @@ impl Box2D {
         let point = point.into();
         self.lower = Vec2D::new(self.lower.x.min(point.x), self.lower.y.min(point.y));
         self.upper = Vec2D::new(self.upper.x.max(point.x), self.upper.y.max(point.y));
+    }
+
+    pub fn num_points(&self) -> usize {
+        ((self.upper.x - self.lower.x + 1) * (self.upper.y - self.lower.y + 1)) as usize
     }
 
     pub fn points_inside(&self) -> impl Iterator<Item = Vec2D> + '_ {
