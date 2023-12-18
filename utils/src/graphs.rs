@@ -18,26 +18,49 @@ pub trait UnweightedGraph {
     ) -> impl Iterator<Item = Self::Node> + 'a;
 }
 
-pub fn bfs<T: Node>(
-    graph: &impl UnweightedGraph<Node = T>,
-    start: impl Into<T>,
-    end: impl Into<T>,
-) -> Option<usize> {
-    let (start, end) = (start.into(), end.into());
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BfsResult<N: Node> {
+    distance: Option<usize>,
+    visited: HashSet<N>,
+}
 
-    let mut visited: HashSet<T> = HashSet::new();
+pub fn bfs<N: Node>(
+    graph: &impl UnweightedGraph<Node = N>,
+    start: impl Into<N>,
+    end: impl Into<N>) -> BfsResult<N> {
+    bfs_impl(graph, start, Some(end.into()))
+}
+
+
+pub fn floodfill<N: Node>(
+    graph: &impl UnweightedGraph<Node = N>,
+    start: impl Into<N>) -> HashSet<N> {
+    bfs_impl(graph, start, None).visited
+}
+
+fn bfs_impl<N: Node>(
+    graph: &impl UnweightedGraph<Node = N>,
+    start: impl Into<N>,
+    end: Option<N>,
+) -> BfsResult<N> {
+    let start = start.into();
+
+    let mut visited: HashSet<N> = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_front((start, 0));
 
     loop {
         match queue.pop_front() {
-            None => return None,
+            None => return BfsResult { distance: None, visited },
             Some((node, distance)) => {
-                if node == end {
-                    return Some(distance);
-                }
-
                 visited.insert(node.clone());
+
+                match end {
+                    Some(end) if end == node => {
+                        return BfsResult { distance: distance.into(), visited }
+                    }
+                    _ => (),
+                }
 
                 queue.extend(graph.neighbors(&node).filter_map(|n| {
                     if visited.contains(&n) {
@@ -143,6 +166,7 @@ mod tests {
     };
 
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[derive(Debug, Clone)]
     struct SimpleWeightedGraph {
@@ -200,10 +224,7 @@ mod tests {
         ]
         .into();
 
-        assert_eq!(
-            dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(5, 3)),
-            Some(11)
-        );
+        assert_eq!(dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(5, 3)), Some(11));
         assert_eq!(dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(-1, -1)), None);
         assert_eq!(dijkstra(&grid, [Vec2D::new(0, 0)], |&node| node == Vec2D::new(0, 0)), Some(0));
     }
@@ -215,22 +236,32 @@ mod tests {
                 &'a self,
                 node: &'b Vec2D,
             ) -> impl Iterator<Item = Vec2D> + 'a {
-                self.all_neighbors(node)
-                    .filter(move |pos| self[*pos] != '#')
+                self.all_neighbors(node).filter(move |pos| self[*pos] != '#')
             }
         }
 
         let grid: Grid<char> = vec![
-            vec!['.', '#', '.', '.', '.', '.'],
-            vec!['.', '#', '.', '#', '#', '.'],
-            vec!['.', '#', '.', '#', '#', '.'],
-            vec!['.', '.', '#', '.', '#', '.'],
+            vec!['.', '#', '#', '.', '.', '.', '.'],
+            vec!['.', '.', '#', '.', '#', '#', '.'],
+            vec!['.', '#', '#', '.', '#', '#', '.'],
+            vec!['.', '.', '.', '#', '.', '#', '.'],
         ]
         .into();
 
-        assert_eq!(bfs(&grid, (0, 0), (5, 3)), Some(10));
-        assert_eq!(bfs(&grid, (0, 0), (1, 1)), None);
-        assert_eq!(bfs(&grid, (0, 0), (0, 0)), Some(0));
+        assert_eq!(bfs(&grid, (0, 0), (6, 3)).distance, Some(11));
+        assert_eq!(bfs(&grid, (0, 0), (2, 2)).distance, None);
+        assert_eq!(bfs(&grid, (0, 0), (0, 0)).distance, Some(0));
+
+        assert_eq!(
+            bfs(&grid, (0, 0), (2, 3)),
+            BfsResult {
+                distance: Some(4),
+                visited: [(0, 0), (0, 1), (1, 1), (0, 2), (0, 3), (1, 3), (2, 3)]
+                    .into_iter()
+                    .map(Vec2D::from)
+                    .collect(),
+            }
+        );
     }
 
     #[test]
