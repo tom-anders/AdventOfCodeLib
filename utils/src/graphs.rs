@@ -1,5 +1,5 @@
 use std::cmp::Reverse;
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
 
@@ -45,32 +45,32 @@ fn bfs_impl<N: Node>(
 ) -> BfsResult<N> {
     let start = start.into();
 
+    let mut distance = 0;
     let mut visited: HashSet<N> = HashSet::new();
-    let mut queue = VecDeque::new();
-    queue.push_front((start, 0));
+
+    let mut next = HashSet::new();
+    next.insert(start);
 
     loop {
-        match queue.pop_front() {
-            None => return BfsResult { distance: None, visited },
-            Some((node, distance)) => {
-                visited.insert(node.clone());
+        if next.is_empty() {
+            return BfsResult { distance: None, visited };
+        }
+        let mut neighbors = HashSet::new();
+        for node in next {
+            visited.insert(node.clone());
 
-                match end {
-                    Some(end) if end == node => {
-                        return BfsResult { distance: distance.into(), visited }
-                    }
-                    _ => (),
+            if Some(&node) == end.as_ref() {
+                return BfsResult { distance: Some(distance), visited };
+            }
+
+            for n in graph.neighbors(&node) {
+                if !visited.contains(&n) {
+                    neighbors.insert(n);
                 }
-
-                queue.extend(graph.neighbors(&node).filter_map(|n| {
-                    if visited.contains(&n) {
-                        None
-                    } else {
-                        Some((n, distance + 1))
-                    }
-                }));
             }
         }
+        next = neighbors;
+        distance += 1;
     }
 }
 
