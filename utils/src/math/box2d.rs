@@ -36,8 +36,7 @@ impl Box2D {
         self.upper
     }
 
-    pub fn contains(&self, point: impl Into<Vec2D>) -> bool {
-        let point = point.into();
+    pub fn contains(&self, point: &Vec2D) -> bool {
         point.x >= self.lower.x
             && point.y >= self.lower.y
             && point.x <= self.upper.x
@@ -66,23 +65,23 @@ mod tests {
     #[test]
     fn test_contains() {
         let box2d = Box2D::new(Vec2D::new(0, 0), Vec2D::new(2, 2));
-        assert!(box2d.contains(Vec2D::new(0, 0)));
-        assert!(box2d.contains(Vec2D::new(1, 1)));
-        assert!(box2d.contains(Vec2D::new(2, 2)));
-        assert!(!box2d.contains(Vec2D::new(-1, 0)));
-        assert!(!box2d.contains(Vec2D::new(0, -1)));
-        assert!(!box2d.contains(Vec2D::new(3, 0)));
-        assert!(!box2d.contains(Vec2D::new(0, 3)));
+        assert!(box2d.contains(&Vec2D::new(0, 0)));
+        assert!(box2d.contains(&Vec2D::new(1, 1)));
+        assert!(box2d.contains(&Vec2D::new(2, 2)));
+        assert!(!box2d.contains(&Vec2D::new(-1, 0)));
+        assert!(!box2d.contains(&Vec2D::new(0, -1)));
+        assert!(!box2d.contains(&Vec2D::new(3, 0)));
+        assert!(!box2d.contains(&Vec2D::new(0, 3)));
 
         let box2d = Box2D::new(Vec2D::new(-1, -1), Vec2D::new(2, 2));
-        assert!(box2d.contains(Vec2D::new(-1, -1)));
-        assert!(box2d.contains(Vec2D::new(0, 0)));
-        assert!(box2d.contains(Vec2D::new(1, 1)));
-        assert!(box2d.contains(Vec2D::new(2, 2)));
-        assert!(!box2d.contains(Vec2D::new(-2, 0)));
-        assert!(!box2d.contains(Vec2D::new(0, -2)));
-        assert!(!box2d.contains(Vec2D::new(3, 0)));
-        assert!(!box2d.contains(Vec2D::new(0, 3)));
+        assert!(box2d.contains(&Vec2D::new(-1, -1)));
+        assert!(box2d.contains(&Vec2D::new(0, 0)));
+        assert!(box2d.contains(&Vec2D::new(1, 1)));
+        assert!(box2d.contains(&Vec2D::new(2, 2)));
+        assert!(!box2d.contains(&Vec2D::new(-2, 0)));
+        assert!(!box2d.contains(&Vec2D::new(0, -2)));
+        assert!(!box2d.contains(&Vec2D::new(3, 0)));
+        assert!(!box2d.contains(&Vec2D::new(0, 3)));
 
         let box2d = Box2D::new(Vec2D::new(0, 0), Vec2D::new(2, 1));
         assert_eq!(
