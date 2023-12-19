@@ -29,6 +29,10 @@ impl Input {
             .collect()
     }
 
+    pub fn blocks(&self) -> impl Iterator<Item = &str> {
+        self.raw.split("\n\n")
+    }
+
     pub fn split_and_parse<T: FromStr>(&self, sep: &'static str) -> impl Iterator<Item = T> + '_
     where
         <T as std::str::FromStr>::Err: std::fmt::Debug,
@@ -190,14 +194,17 @@ mod tests {
     fn parse_sparse_grid() {
         let input = Input { raw: "a,bb\ndd,e,ff\nx".to_string() };
         assert_eq!(
-            SparseGrid::from_iter([
-                (Vec2D::new(0, 0), "a".to_string()),
-                (Vec2D::new(1, 0), "bb".to_string()),
-                (Vec2D::new(0, 1), "dd".to_string()),
-                (Vec2D::new(1, 1), "e".to_string()),
-                (Vec2D::new(2, 1), "ff".to_string()),
-                (Vec2D::new(0, 2), "x".to_string()),
-            ].into_iter()),
+            SparseGrid::from_iter(
+                [
+                    (Vec2D::new(0, 0), "a".to_string()),
+                    (Vec2D::new(1, 0), "bb".to_string()),
+                    (Vec2D::new(0, 1), "dd".to_string()),
+                    (Vec2D::new(1, 1), "e".to_string()),
+                    (Vec2D::new(2, 1), "ff".to_string()),
+                    (Vec2D::new(0, 2), "x".to_string()),
+                ]
+                .into_iter()
+            ),
             input.parse_sparse_grid(",")
         );
     }
