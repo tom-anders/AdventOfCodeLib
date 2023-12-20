@@ -8,13 +8,15 @@ pub struct Input {
     pub raw: String,
 }
 
+impl<T> From<T> for Input where T: ToString {
+    fn from(value: T) -> Self {
+        Self { raw: value.to_string().trim().to_string() }
+    }
+}
+
 impl Input {
     pub fn new(input_file: &str) -> Input {
         Input { raw: std::fs::read_to_string(input_file).unwrap() }
-    }
-
-    pub fn from_str(s: &str) -> Input {
-        Input { raw: s.to_string() }
     }
 
     pub fn lines(&self) -> impl Iterator<Item = &str> + '_ {
