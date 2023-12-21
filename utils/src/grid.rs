@@ -80,6 +80,20 @@ impl<T> Grid<T> {
         &mut self.data
     }
 
+    pub fn get_wrapping(&self, pos: impl Into<Vec2D>) -> &T {
+        let mut pos = pos.into();
+
+        while pos.x < 0 {
+            pos.x += self.num_cols() as i64;
+        }
+
+        while pos.y < 0 {
+            pos.y += self.num_rows() as i64;
+        }
+
+        &self[(pos.x % self.num_cols() as i64, pos.y % self.num_cols() as i64)]
+    }
+
     pub fn get(&self, pos: impl Into<Vec2D>) -> Option<&T> {
         let pos = pos.into();
         self.contains(&pos).then(|| &self.data[pos.y as usize][pos.x as usize])
@@ -400,6 +414,17 @@ mod tests {
                 vec![0, 0, 0, 0, 0],
             ]
         );
+    }
+
+    #[test]
+    fn get_wrapping() {
+        let grid: Grid<_> = [[1, 2, 3], [4, 5, 6]].into();
+        assert_eq!(grid.get_wrapping((0, 0)), &1);
+        assert_eq!(grid.get_wrapping((-1, 0)), &3);
+        assert_eq!(grid.get_wrapping((-3, 0)), &1);
+        assert_eq!(grid.get_wrapping((-6, -2)), &1);
+        assert_eq!(grid.get_wrapping((-1, 1)), &6);
+        assert_eq!(grid.get_wrapping((-1, -1)), &6);
     }
 
     #[test]

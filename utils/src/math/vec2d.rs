@@ -28,6 +28,10 @@ impl Vec2D {
         Self::new(0, 0)
     }
 
+    pub fn is_zero(&self) -> bool {
+        *self == Self::zero()
+    }
+
     pub fn xaxis(x: i64) -> Self {
         Self { x, y: 0 }
     }
