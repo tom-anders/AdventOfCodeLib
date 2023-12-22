@@ -23,10 +23,7 @@ utils.path = '../utils'
 derive_more.workspace = true
 itertools.workspace = true
 lazy-regex.workspace = true
-ndarray.workspace = true
-num.workspace = true
 parse-display.workspace = true
-priority-queue.workspace = true
 rayon.workspace = true
 regex.workspace = true
 
