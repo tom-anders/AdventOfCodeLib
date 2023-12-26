@@ -8,10 +8,7 @@ M.init = function(day, impl, example, input)
     vim.cmd(string.format("terminal zsh -c 'git ls-files | entr cargo test --package day%d -- --nocapture --test-threads=1'", day))
     vim.cmd 'normal G' -- Scroll to bottom on new output
 
-    vim.cmd.split(example)
-    vim.cmd 'wincmd 10-'
-
-    -- back o main window
+    -- back to main window
     vim.cmd 'wincmd h'
     vim.cmd 'wincmd 10>'
 
