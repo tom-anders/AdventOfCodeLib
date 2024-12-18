@@ -3,8 +3,10 @@ use quote::quote;
 use syn::{parse_macro_input, Expr, ExprLit, Lit};
 
 #[proc_macro_attribute]
-pub fn aoc_main(_args: TokenStream, item: TokenStream) -> TokenStream {
+pub fn aoc_main(args: TokenStream, item: TokenStream) -> TokenStream {
     let solve_fn = parse_macro_input!(item as syn::ItemFn);
+
+    let args = proc_macro2::TokenStream::from(args);
 
     let solve_fn_identifier = solve_fn.sig.ident.clone();
 
@@ -14,7 +16,7 @@ pub fn aoc_main(_args: TokenStream, item: TokenStream) -> TokenStream {
         fn main() {
             let input_file = std::env::args().nth(1).expect("Expect input file as first argument");
             let start_time = std::time::Instant::now();
-            let solution: Solution = #solve_fn_identifier(Input::new(&input_file)).into();
+            let solution: Solution = #solve_fn_identifier(Input::new(&input_file), #args).into();
             println!("{}", solution);
             println!("Time: {:.1?}", start_time.elapsed());
             solution.copy_to_clipboard();
