@@ -12,7 +12,7 @@ impl=$day_package/src/main.rs
 input="inputs/${day}.in" 
 example="inputs/${day}.example" 
 
-url="https://adventofcode.com/2023/day/${day}"
+url="https://adventofcode.com/${AOCYEAR:-2024}/day/${day}"
 
 if [[ ! -d $day_package ]]; then
     cargo new $day_package --bin
