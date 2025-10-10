@@ -29,20 +29,29 @@ pub fn bfs<N: Node>(
     start: impl Into<N>,
     end: impl Into<N>,
 ) -> BfsResult<N> {
-    bfs_impl(graph, start, Some(end.into()))
+    let end = end.into();
+    bfs_impl(graph, start, |node| *node == end)
+}
+
+pub fn bfs_predicate<N: Node>(
+    graph: &impl UnweightedGraph<Node = N>,
+    start: impl Into<N>,
+    reached_target: impl Fn(&N) -> bool,
+) -> BfsResult<N> {
+    bfs_impl(graph, start, reached_target)
 }
 
 pub fn floodfill<N: Node>(
     graph: &impl UnweightedGraph<Node = N>,
     start: impl Into<N>,
 ) -> HashMap<N, usize> {
-    bfs_impl(graph, start, None).visited
+    bfs_impl(graph, start, |_| false).visited
 }
 
 fn bfs_impl<N: Node>(
     graph: &impl UnweightedGraph<Node = N>,
     start: impl Into<N>,
-    end: Option<N>,
+    reached_target: impl Fn(&N) -> bool,
 ) -> BfsResult<N> {
     let start = start.into();
 
@@ -60,7 +69,7 @@ fn bfs_impl<N: Node>(
         for node in next {
             visited.insert(node.clone(), distance);
 
-            if Some(&node) == end.as_ref() {
+            if reached_target(&node) {
                 return BfsResult { distance: Some(distance), visited };
             }
 
