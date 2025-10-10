@@ -67,8 +67,8 @@ EOF
 fi
 
 
-i3-msg "workspace 1; exec firefox $url"
+i3-msg "workspace 5; exec firefox $url"
 sleep 0.1
-i3-msg "workspace 2"
+i3-msg "workspace 1"
 
 nvim -c "lua require'aoc'.init($day, '$impl', '$input')"
