@@ -170,6 +170,12 @@ impl<T> Grid<T> {
         self.coordinates_row_major().map(move |pos| (pos, &self[pos]))
     }
 
+    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = (Vec2D, &mut T)> + '_ {
+        self.data.iter_mut().enumerate().flat_map(|(y, col)| {
+            col.iter_mut().enumerate().map(move |(x, val)| (Vec2D::from((x, y)), val))
+        })
+    }
+
     pub fn orthogonal_neighbors<'a, 'b: 'a>(
         &'a self,
         pos: &'b Vec2D,
@@ -416,7 +422,7 @@ mod tests {
 
     #[test]
     fn iter() {
-        let grid: Grid<_> = [[1, 2, 3], [4, 5, 6]].into();
+        let mut grid: Grid<_> = [[1, 2, 3], [4, 5, 6]].into();
 
         assert_eq!(
             grid.coordinates_row_major().collect_vec(),
@@ -451,6 +457,18 @@ mod tests {
                 (Vec2D::new(1, 1), &5),
                 (Vec2D::new(2, 1), &6)
             ],
-        )
+        );
+
+        assert_eq!(
+            grid.iter_mut().collect_vec(),
+            vec![
+                (Vec2D::new(0, 0), &mut 1),
+                (Vec2D::new(1, 0), &mut 2),
+                (Vec2D::new(2, 0), &mut 3),
+                (Vec2D::new(0, 1), &mut 4),
+                (Vec2D::new(1, 1), &mut 5),
+                (Vec2D::new(2, 1), &mut 6)
+            ],
+        );
     }
 }
