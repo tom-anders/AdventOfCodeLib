@@ -18,8 +18,8 @@ if [[ ! -d $day_package ]]; then
     cargo new $day_package --bin
 
     cat << EOF >> $day_package/Cargo.toml
-aoc_derive.path = '../aoc_derive'
-utils.path = '../utils'
+aoc_derive.path = '../aoc_lib/aoc_derive'
+utils.path = '../aoc_lib/utils'
 derive_more.workspace = true
 itertools.workspace = true
 lazy-regex.workspace = true
