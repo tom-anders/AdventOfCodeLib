@@ -1,97 +1,104 @@
 local M = {}
 
 M.init = function(day, impl, input)
-    require("toggleterm").setup({ shell = '/usr/bin/env zsh -f' })
-    vim.cmd.edit(impl)
-    vim.cmd 'Copilot disable' -- no spoilers please
+  require("toggleterm").setup({ shell = '/usr/bin/env zsh -f' })
+  vim.cmd.edit(impl)
+  vim.cmd 'Copilot disable' -- no spoilers please
 
-    -- Open input in new tab
-    vim.cmd.tabedit(input)
-    vim.cmd.tabprev()
-    vim.cmd.vsplit()
-    vim.cmd(string.format("terminal zsh -c 'git ls-files | entr cargo test --package day%d -- --nocapture --test-threads=1'", day))
-    vim.cmd 'normal G' -- Scroll to bottom on new output
-    vim.cmd.tabedit('%') -- New tab with only test output
+  vim.cmd.LualineRenameTab("Main")
 
-    -- back to main window
-    vim.cmd.tabprev()
-    vim.cmd 'wincmd h'
-    vim.cmd 'wincmd 10>'
+  -- Open input in new tab
+  vim.cmd.tabedit(input)
+  vim.cmd.LualineRenameTab("Input")
+  vim.cmd.tabprev()
+  vim.cmd.vsplit()
+  vim.cmd(string.format(
+    "terminal zsh -c 'git ls-files | entr cargo test --package day%d -- --nocapture --test-threads=1'", day))
+  vim.cmd 'normal G'   -- Scroll to bottom on new output
+  vim.cmd.tabedit('%') -- New tab with only test output
+  vim.cmd.LualineRenameTab("Tests")
 
-    function build_and_debug(input) 
-        vim.cmd('wa')
-        vim.cmd(string.format('!cargo build --package day%d', day))
-        if vim.v.shell_error == 0 then
-            vim.fn.feedkeys('<CR>') -- get rid of the press any key prompt
-            vim.cmd(string.format('DebugArgs %s', input))
-            require'dap'.continue()
-        end
+  -- back to main window
+  vim.cmd.tabprev()
+  vim.cmd 'wincmd h'
+  vim.cmd 'wincmd 10>'
+
+  local function build_and_then(f)
+    vim.cmd('wa')
+    vim.cmd(string.format('!cargo build --package day%d', day))
+    if vim.v.shell_error == 0 then
+      vim.fn.feedkeys('<CR>') -- get rid of the press any key prompt
+      f()
     end
-    vim.cmd(string.format('DebugExe target/debug/day%d', day))
+  end
 
-    vim.keymap.set('n', '<leader>da', function() build_and_debug(input) end)
+  -- Debug with real input
+  vim.keymap.set('n', '<leader>da',
+    function() build_and_then(function() vim.cmd('RustLsp debuggables ' .. input) end) end)
+  -- Debug target under cursor
+  vim.keymap.set('n', '<leader>dd', function() build_and_then(function() vim.cmd('RustLsp debug') end) end)
 
-    local overseer = require'overseer'
-    overseer.register_template {
-        name = "solve",
-        builder = function(params) 
-            local args = {
-                "run",
-                '--package', 'day' .. day,
-                "--", params.input
-            }
-            if params.release then
-                table.insert(args, 2, "--release")
-            end
+  local overseer = require 'overseer'
+  overseer.register_template {
+    name = "solve",
+    builder = function(params)
+      local args = {
+        "run",
+        '--package', 'day' .. day,
+        "--", params.input
+      }
+      if params.release then
+        table.insert(args, 2, "--release")
+      end
 
-            return {
-                cmd = {'cargo'},
-                args = args,
-                strategy = {
-                    'toggleterm',
-                    use_shell = true, -- Needed for xclip to work correctly
-                    direction = 'horizontal',
-                    auto_scroll = true,
-                    on_create = function()
-                        vim.keymap.set('n', 'q', ':q<CR>', {buffer = true, silent = true})
-                        -- Open in new tab
-                        vim.keymap.set('n', 't', '<C-w>T<CR>', {buffer = true})
-                        -- https://github.com/stevearc/overseer.nvim/issues/186
-                        vim.cmd("stopinsert")
-                    end,
-                },
-            }
-        end,
-        params = {
-            input = {
-                type = "string",
-            },
-            release = {
-                type = "boolean",
-                default = false,
-                optional = true,
-            }
+      return {
+        cmd = { 'cargo' },
+        args = args,
+        strategy = {
+          'toggleterm',
+          use_shell = true, -- Needed for xclip to work correctly
+          direction = 'horizontal',
+          auto_scroll = true,
+          on_create = function()
+            vim.keymap.set('n', 'q', ':q<CR>', { buffer = true, silent = true })
+            -- Open in new tab
+            vim.keymap.set('n', 't', '<C-w>T<CR>', { buffer = true })
+            -- https://github.com/stevearc/overseer.nvim/issues/186
+            vim.cmd("stopinsert")
+          end,
         },
-    }
-    overseer.add_template_hook({ name = "solve" }, function(task_defn, util)
-        util.remove_component(task_defn, "on_output_quickfix")
-    end)
+      }
+    end,
+    params = {
+      input = {
+        type = "string",
+      },
+      release = {
+        type = "boolean",
+        default = false,
+        optional = true,
+      }
+    },
+  }
+  overseer.add_template_hook({ name = "solve" }, function(task_defn, util)
+    util.remove_component(task_defn, "on_output_quickfix")
+  end)
 
-    function save_and_solve(params) 
-        vim.cmd'wa'
-        overseer.run_template({name = "solve", params = params})
-    end
+  function save_and_solve(params)
+    vim.cmd 'wa'
+    overseer.run_template({ name = "solve", params = params })
+  end
 
-    vim.keymap.set('n', '<leader>a', function() save_and_solve({input = input}) end)
+  vim.keymap.set('n', '<leader>a', function() save_and_solve({ input = input }) end)
 
-    vim.keymap.del('n', '<leader>or')
-    vim.keymap.del('n', '<leader>ot')
+  vim.keymap.del('n', '<leader>or')
+  vim.keymap.del('n', '<leader>ot')
 
-    vim.keymap.set('n', '<leader>o', function() save_and_solve({input = input, release = true}) end)
+  vim.keymap.set('n', '<leader>o', function() save_and_solve({ input = input, release = true }) end)
 
-    vim.keymap.set('n', '<leader>ca', function() 
-        vim.cmd(string.format(":!cargo add %s --package day%d", vim.fn.input("package(s) to add: "), day))
-    end)
+  vim.keymap.set('n', '<leader>ca', function()
+    vim.cmd(string.format(":!cargo add %s --package day%d", vim.fn.input("package(s) to add: "), day))
+  end)
 end
 
 return M
