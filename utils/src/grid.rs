@@ -183,6 +183,15 @@ impl<T> Grid<T> {
         pos.orthogonal_neighbors().filter(move |neighbor| self.contains(neighbor))
     }
 
+    pub fn orthogonal_neighbor_values<'a, 'b: 'a>(
+        &'a self,
+        pos: &'b Vec2D,
+    ) -> impl Iterator<Item = &'a T> + 'a {
+        pos.orthogonal_neighbors()
+            .filter(|&neighbor| self.contains(&neighbor))
+            .map(|neighbor| self.get(neighbor).unwrap())
+    }
+
     pub fn diagonal_neighbors<'a, 'b: 'a>(
         &'a self,
         pos: &'b Vec2D,
@@ -190,8 +199,26 @@ impl<T> Grid<T> {
         pos.diagonal_neighbors().filter(move |neighbor| self.contains(neighbor))
     }
 
+    pub fn diagonal_neighbor_values<'a, 'b: 'a>(
+        &'a self,
+        pos: &'b Vec2D,
+    ) -> impl Iterator<Item = &'a T> + 'a {
+        pos.diagonal_neighbors()
+            .filter(|&neighbor| self.contains(&neighbor))
+            .map(|neighbor| self.get(neighbor).unwrap())
+    }
+
     pub fn all_neighbors<'a, 'b: 'a>(&'a self, pos: &'b Vec2D) -> impl Iterator<Item = Vec2D> + 'a {
         pos.all_neighbors().filter(move |neighbor| self.contains(neighbor))
+    }
+
+    pub fn all_neighbor_values<'a, 'b: 'a>(
+        &'a self,
+        pos: &'b Vec2D,
+    ) -> impl Iterator<Item = &'a T> + 'a {
+        pos.all_neighbors()
+            .filter(|&neighbor| self.contains(&neighbor))
+            .map(|neighbor| self.get(neighbor).unwrap())
     }
 }
 
