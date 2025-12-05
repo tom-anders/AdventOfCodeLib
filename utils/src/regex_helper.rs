@@ -56,6 +56,22 @@ pub fn extract_two_numbers(s: &str) -> Vec2D {
     extract_numbers::<i64>(s).collect_tuple::<(_, _)>().unwrap().into()
 }
 
+pub trait ParseUsize {
+    fn parse_usize(&self) -> usize;
+}
+
+impl ParseUsize for str {
+    fn parse_usize(&self) -> usize {
+        self.parse::<usize>().unwrap()
+    }
+}
+
+impl ParseUsize for String {
+    fn parse_usize(&self) -> usize {
+        self.parse::<usize>().unwrap()
+    }
+}
+
 impl RegexHelper for regex::Regex {
     fn find_iter_str<'a, 'b: 'a>(&'a self, s: &'b str) -> impl Iterator<Item = &'b str> + 'a {
         self.find_iter(s).map(|m| m.as_str())
