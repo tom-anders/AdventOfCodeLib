@@ -103,6 +103,10 @@ impl Input {
         self.lines().map(str::chars).collect()
     }
 
+    pub fn str_grid(&self) -> Grid<&str> {
+        self.lines().map(str::split_whitespace).collect()
+    }
+
     pub fn char_sparse_grid(&self) -> SparseGrid<char> {
         self.char_grid().iter().map(|(pos, c)| (pos, *c)).collect()
     }
