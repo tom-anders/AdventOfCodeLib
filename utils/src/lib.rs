@@ -41,6 +41,19 @@ pub trait EvenMoreItertools: Iterator {
         self.map(|i| i.try_into().unwrap()).sum()
     }
 
+    fn fold_chars_to_number<I>(self) -> u32
+    where
+        Self: DoubleEndedIterator<Item = I> + Sized,
+        I: std::fmt::Display,
+        char: std::convert::From<I>,
+    {
+        self.rev()
+            .flat_map(|c| char::from(c).to_digit(10))
+            .enumerate()
+            .map(|(i, n)| n * 10_u32.pow(i as u32))
+            .sum()
+    }
+
     fn fold_digits_to_number<N, I>(self) -> N
     where
         Self: Iterator<Item = I> + Sized,
@@ -199,6 +212,7 @@ mod tests {
     fn fold_digits() {
         assert_eq!(123, [1, 2, 3].into_iter().fold_digits_to_number());
         assert_eq!(123, ["1", "2", "3"].into_iter().fold_digits_to_number());
+        assert_eq!(123, ['x', '1', '2', '3', ' '].into_iter().fold_chars_to_number());
     }
 
     #[test]
