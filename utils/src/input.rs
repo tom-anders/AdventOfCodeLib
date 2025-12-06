@@ -23,6 +23,10 @@ impl Input {
         Input { raw: std::fs::read_to_string(input_file).unwrap() }
     }
 
+    pub fn from_str_no_trim(s: &str) -> Self {
+        Input { raw: s.to_string() }
+    }
+
     pub fn as_str(&self) -> &str {
         &self.raw
     }
