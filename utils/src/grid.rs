@@ -276,6 +276,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct ColIter<'a, T> {
     grid: &'a Grid<T>,
     row: usize,
